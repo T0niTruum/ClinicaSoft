@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Especialidades y Médicos</title>
+</head>
+<body>
+  <h1>Especialidades y médicos disponibles</h1>
+
+  <% if (flash && flash.success) { %>
+    <div class="alert success"><%= flash.success.join(', ') %></div>
+  <% } %>
+
+  <% especialidades.forEach((especialidad) => { %>
+    <section>
+      <h2><%= especialidad.nombre %></h2>
+      <p><%= especialidad.descripcion %></p>
+      <ul>
+        <% especialidad.medicos.forEach((medico) => { %>
+          <li><%= medico.persona.nombre %> <%= medico.persona.apellido %> (<%= medico.disponibilidad ? 'Disponible' : 'No disponible' %>)</li>
+        <% }) %>
+      </ul>
+    </section>
+  <% }) %>
+
+  <section>
+    <h2>Médicos globales disponibles</h2>
+    <ul>
+      <% medicos.forEach((medico) => { %>
+        <li><%= medico.persona.nombre %> <%= medico.persona.apellido %> - <%= medico.especialidad.nombre %></li>
+      <% }) %>
+    </ul>
+  </section>
+</body>
+</html>

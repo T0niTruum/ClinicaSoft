@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pacientes</title>
+</head>
+<body>
+  <h1>Pacientes</h1>
+
+  <% if (flash && flash.success) { %>
+    <div class="alert success"><%= flash.success.join(', ') %></div>
+  <% } %>
+
+  <form method="get" action="/pacientes">
+    <label>Estado:
+      <select name="estado">
+        <option value="">Todos</option>
+        <option value="ACTIVO" <%= filters.estadoPaciente === 'ACTIVO' ? 'selected' : '' %>>Activos</option>
+        <option value="INACTIVO" <%= filters.estadoPaciente === 'INACTIVO' ? 'selected' : '' %>>Inactivos</option>
+      </select>
+    </label>
+    <label>Documento: <input type="text" name="documento" value="<%= filters.documento || '' %>" /></label>
+    <button type="submit">Filtrar</button>
+  </form>
+
+  <a href="/pacientes/nuevo">Nuevo paciente</a>
+
+  <table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Documento</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% pacientes.forEach((registro) => { %>
+        <tr>
+          <td><%= registro.persona.nombre %> <%= registro.persona.apellido %></td>
+          <td><%= registro.persona.tipoDocumento %> <%= registro.persona.documento %></td>
+          <td><%= registro.estadoPaciente %></td>
+          <td>
+            <a href="/pacientes/<%= registro.id %>/editar">Editar</a>
+            <form action="/pacientes/<%= registro.id %>/inactivar" method="post" style="display:inline;">
+              <button type="submit">Inactivar</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+      <% if (pacientes.length === 0) { %>
+        <tr><td colspan="4">No se encontraron pacientes.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+
+  <div>
+    Página <%= pagination.page %> de <%= Math.ceil(pagination.total / pagination.pageSize) %>
+  </div>
+</body>
+</html>

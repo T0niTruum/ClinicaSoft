@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Agendar cita</title>
+</head>
+<body>
+  <h1>Agendar cita</h1>
+
+  <% if (flash && flash.success) { %>
+    <div class="alert success"><%= flash.success.join(', ') %></div>
+  <% } %>
+  <% if (flash && flash.warning) { %>
+    <div class="alert warning"><%= flash.warning.join(', ') %></div>
+  <% } %>
+
+  <form method="post" action="/agendamiento/confirmar">
+    <div>
+      <label>Tipo de documento</label>
+      <input name="tipoDocumento" value="<%= form?.tipoDocumento || '' %>" />
+    </div>
+    <div>
+      <label>Documento</label>
+      <input name="documento" value="<%= form?.documento || '' %>" />
+    </div>
+    <div>
+      <label>Médico</label>
+      <select name="medicoId">
+        <option value="">Seleccione un médico</option>
+        <% medicos?.forEach((medico) => { %>
+          <option value="<%= medico.id %>" <%= form?.medicoId === medico.id ? 'selected' : '' %>>
+            <%= medico.persona.nombre %> <%= medico.persona.apellido %> - <%= medico.especialidad.nombre %>
+          </option>
+        <% }) %>
+      </select>
+    </div>
+    <div>
+      <label>Horario</label>
+      <select name="horarioId">
+        <option value="">Seleccione un horario</option>
+        <% if (especialidades && especialidades.length > 0) { %>
+          <% especialidades.forEach((especialidad) => { %>
+            <optgroup label="<%= especialidad.nombre %>">
+              <% especialidad.medicos.forEach((medico) => { %>
+                <option value="<%= medico.id %>" disabled><%= medico.persona.nombre %> <%= medico.persona.apellido %> - <%= medico.disponibilidad ? 'Disponible' : 'No disponible' %></option>
+              <% }) %>
+            </optgroup>
+          <% }) %>
+        <% } %>
+      </select>
+    </div>
+    <div>
+      <label>Motivo</label>
+      <textarea name="motivo"><%= form?.motivo || '' %></textarea>
+    </div>
+    <button type="submit">Confirmar agendamiento</button>
+  </form>
+
+  <% if (errors && errors.length) { %>
+    <div class="errors">
+      <h2>Errores</h2>
+      <ul>
+        <% errors.forEach((error) => { %>
+          <li><%= error.message %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+</body>
+</html>

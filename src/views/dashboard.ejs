@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Clínica Del Llano | Dashboard</title>
+</head>
+<body>
+  <h1>Dashboard</h1>
+  <% if (flash && flash.success) { %>
+    <div class="alert success"><%= flash.success.join(', ') %></div>
+  <% } %>
+  <% if (flash && flash.warning) { %>
+    <div class="alert warning"><%= flash.warning.join(', ') %></div>
+  <% } %>
+
+  <section>
+    <h2>Estadísticas</h2>
+    <ul>
+      <li>Pacientes activos: <%= dashboard.pacientesActivos %></li>
+      <li>Médicos disponibles: <%= dashboard.medicosDisponibles %></li>
+      <li>Citas pendientes: <%= dashboard.citasPendientes %></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Próximos horarios disponibles</h2>
+    <ul>
+      <% dashboard.proximosHorarios.forEach((horario) => { %>
+        <li>
+          <%= horario.fecha.toISOString().slice(0, 10) %> -
+          <%= horario.horaInicio.toISOString().slice(11, 16) %> a
+          <%= horario.horaFin.toISOString().slice(11, 16) %>
+          (<%= horario.medico.persona.nombre %> <%= horario.medico.persona.apellido %>)
+        </li>
+      <% }) %>
+      <% if (dashboard.proximosHorarios.length === 0) { %>
+        <li>No hay horarios disponibles por el momento.</li>
+      <% } %>
+    </ul>
+  </section>
+</body>
+</html>

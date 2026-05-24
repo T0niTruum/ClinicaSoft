@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= paciente && paciente.id ? 'Editar Paciente' : 'Crear Paciente' %></title>
+</head>
+<body>
+  <h1><%= paciente && paciente.id ? 'Editar Paciente' : 'Crear Paciente' %></h1>
+
+  <% if (flash && flash.success) { %>
+    <div class="alert success"><%= flash.success.join(', ') %></div>
+  <% } %>
+
+  <form method="post" action="<%= paciente && paciente.id ? '/pacientes/' + paciente.id + '/editar' : '/pacientes' %>">
+    <div>
+      <label>Nombre</label>
+      <input name="nombre" value="<%= paciente.persona?.nombre || '' %>" <%= paciente.id ? 'readonly' : '' %> />
+    </div>
+    <div>
+      <label>Apellido</label>
+      <input name="apellido" value="<%= paciente.persona?.apellido || '' %>" <%= paciente.id ? 'readonly' : '' %> />
+    </div>
+    <div>
+      <label>Tipo de documento</label>
+      <input name="tipoDocumento" value="<%= paciente.persona?.tipoDocumento || '' %>" <%= paciente.id ? 'readonly' : '' %> />
+    </div>
+    <div>
+      <label>Documento</label>
+      <input name="documento" value="<%= paciente.persona?.documento || '' %>" <%= paciente.id ? 'readonly' : '' %> />
+    </div>
+    <div>
+      <label>Email</label>
+      <input name="email" value="<%= paciente.persona?.email || '' %>" />
+    </div>
+    <div>
+      <label>Teléfono</label>
+      <input name="telefono" value="<%= paciente.persona?.telefono || '' %>" />
+    </div>
+    <div>
+      <label>Fecha de nacimiento</label>
+      <input type="date" name="fechaNacimiento" value="<%= paciente.fechaNacimiento ? paciente.fechaNacimiento.toISOString().slice(0, 10) : '' %>" <%= paciente.id ? 'readonly' : '' %> />
+    </div>
+    <div>
+      <label>Estado civil</label>
+      <input name="estadoCivil" value="<%= paciente.estadoCivil || '' %>" />
+    </div>
+    <button type="submit"><%= paciente && paciente.id ? 'Actualizar' : 'Crear' %></button>
+  </form>
+</body>
+</html>

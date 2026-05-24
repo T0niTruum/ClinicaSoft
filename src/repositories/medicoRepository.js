@@ -20,4 +20,18 @@ export class MedicoRepository {
       ...options,
     });
   }
+
+  static async listAvailable(especialidadId = null, options = {}) {
+    const where = { disponibilidad: true };
+    if (especialidadId) where.especialidadId = especialidadId;
+
+    return Medico.findAll({
+      where,
+      include: [
+        { model: Persona, as: 'persona' },
+        { model: Especialidad, as: 'especialidad' },
+      ],
+      ...options,
+    });
+  }
 }
