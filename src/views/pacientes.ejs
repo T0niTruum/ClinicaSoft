@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gestión de Pacientes | Clínica Del Llano</title>
   <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/app.css" />
   <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <style>
     .modal-backdrop { background: rgba(15, 23, 42, 0.65); }
@@ -16,7 +17,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
   <%- include('partials/sidebar', { activePage: 'pacientes' }) %>
-  <div class="ml-64 min-h-screen">
+  <div class="ml-64 min-h-screen bg-slate-50">
     <%- include('partials/header') %>
 
     <main class="max-w-7xl mx-auto px-6 py-8">
@@ -24,19 +25,19 @@
 
       <section class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p class="text-sm uppercase tracking-[0.24em] text-emerald-600 font-semibold">Portal Médico</p>
-          <h1 class="text-3xl font-semibold text-slate-900">Gestión de Pacientes</h1>
+          <p class="text-sm uppercase tracking-[0.24em] section-label font-semibold">Portal Médico</p>
+          <h1 class="text-3xl font-semibold page-header">Gestión de Pacientes</h1>
           <p class="mt-2 text-slate-500 max-w-2xl">Administre el directorio de pacientes de la clínica de forma segura y moderna.</p>
         </div>
 
-        <button @click="openPatientModal()" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-white shadow-lg shadow-emerald-200/40 hover:bg-emerald-700 transition">
+        <button @click="openPatientModal()" class="btn-primary">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m7-7H5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Registrar Nuevo Paciente
         </button>
       </section>
 
       <div class="grid gap-6">
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+        <div class="panel-card card-shadow p-6">
           <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 class="text-xl font-semibold text-slate-900">Pacientes registrados</h2>
@@ -61,7 +62,7 @@
           </div>
         </div>
 
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="panel-card card-shadow overflow-hidden">
           <div class="border-b border-slate-200 px-6 py-4 bg-slate-50">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -72,7 +73,7 @@
             </div>
           </div>
 
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto table-scroll">
             <table class="min-w-full text-left">
               <thead class="bg-slate-50 text-slate-700">
                 <tr>

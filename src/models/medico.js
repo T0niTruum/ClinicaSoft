@@ -20,16 +20,6 @@ export default (sequelize) => {
       allowNull: false,
       field: 'especialidad_id',
     },
-    horaInicio: {
-      type: DataTypes.TIME,
-      allowNull: true,
-      field: 'hora_inicio',
-    },
-    horaFin: {
-      type: DataTypes.TIME,
-      allowNull: true,
-      field: 'hora_fin',
-    },
   }, {
     tableName: 'medico',
   });

@@ -1,0 +1,166 @@
+:root {
+  --brand: #0f72f8;
+  --brand-soft: #eff6ff;
+  --brand-strong: #0b5ed7;
+  --success: #10b981;
+  --success-soft: #d1fae5;
+  --surface: #f8fafc;
+  --panel: #ffffff;
+  --surface-strong: #e2efff;
+  --border: #dbeafe;
+  --text-primary: #102a43;
+  --text-secondary: #475569;
+  --muted: #64748b;
+}
+
+html, body {
+  min-height: 100%;
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+body {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  padding: 0.95rem 1.6rem;
+  font-weight: 600;
+  color: white;
+  background: var(--brand);
+  border: 1px solid transparent;
+  box-shadow: 0 20px 40px rgba(15, 114, 248, 0.14);
+  transition: transform 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btn-primary:hover {
+  background: var(--brand-strong);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  padding: 0.95rem 1.6rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: #ffffff;
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+  transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.panel-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 1.75rem;
+  box-shadow: 0 24px 55px rgba(15, 23, 42, 0.08);
+}
+
+.panel-card-compact {
+  border-radius: 1.5rem;
+}
+
+.page-header {
+  color: var(--brand-strong);
+}
+
+.section-label {
+  color: var(--brand);
+}
+
+.badge-active {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.badge-inactive {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.table-scroll {
+  max-height: calc(100vh - 20rem);
+  overflow-y: auto;
+}
+
+.scroll-panel,
+.table-scroll,
+.card-scroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.9) transparent;
+}
+
+.scroll-panel::-webkit-scrollbar,
+.table-scroll::-webkit-scrollbar,
+.card-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.scroll-panel::-webkit-scrollbar-track,
+.table-scroll::-webkit-scrollbar-track,
+.card-scroll::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.08);
+  border-radius: 999px;
+}
+
+.scroll-panel::-webkit-scrollbar-thumb,
+.table-scroll::-webkit-scrollbar-thumb,
+.card-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.72);
+  border-radius: 999px;
+}
+
+body ::-webkit-scrollbar {
+  width: 10px;
+}
+
+body ::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.08);
+}
+
+body ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.55);
+  border-radius: 999px;
+}
+
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.card-shadow {
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+}
+
+.step-pill {
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-glow:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px rgba(15, 114, 248, 0.12);
+}

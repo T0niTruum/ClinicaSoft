@@ -30,9 +30,14 @@ function agendarCita() {
     async loadEspecialidades() {
       this.loading.especialidades = true;
       try {
-        const res = await fetch('/api/especialidades');
+        const res = await fetch('/agendar-cita/especialidades', {
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        });
         const json = await res.json();
-        this.especialidades = json.data || json;
+        this.especialidades = json.data?.especialidades || json.data || json;
       } catch (err) {
         console.error(err);
       } finally {
@@ -48,8 +53,15 @@ function agendarCita() {
       this.loading.verify = true;
       this.errorBanner = '';
       try {
-        const qs = new URLSearchParams({ tipoDocumento: this.form.tipoDocumento, documento: this.form.documento });
-        const res = await fetch('/api/pacientes/buscar?' + qs.toString());
+        const res = await fetch('/agendar-cita/buscar', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({ tipoDocumento: this.form.tipoDocumento, documento: this.form.documento }),
+        });
         const json = await res.json();
         if (!json.success) {
           this.patient = null;
@@ -84,7 +96,12 @@ function agendarCita() {
       }
       this.loading.medicos = true;
       try {
-        const res = await fetch('/api/medicos?especialidadId=' + encodeURIComponent(this.form.especialidadId));
+        const res = await fetch('/api/medicos?especialidadId=' + encodeURIComponent(this.form.especialidadId), {
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        });
         const json = await res.json();
         this.medicos = json.data || json;
       } catch (err) {
@@ -104,7 +121,12 @@ function agendarCita() {
       if (!this.form.medicoId) return;
       this.loading.horarios = true;
       try {
-        const res = await fetch('/api/horarios?medicoId=' + encodeURIComponent(this.form.medicoId) + '&fecha=' + encodeURIComponent(this.selectedDate));
+        const res = await fetch('/api/horarios?medicoId=' + encodeURIComponent(this.form.medicoId) + '&fecha=' + encodeURIComponent(this.selectedDate), {
+          headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        });
         const json = await res.json();
         this.horarios = json.data || json;
       } catch (err) {
@@ -141,9 +163,13 @@ function agendarCita() {
           horarioId: this.form.horarioId,
           motivo: this.form.motivo,
         };
-        const res = await fetch('/api/citas/agendar', {
+        const res = await fetch('/agendar-cita/confirmar', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
           body: JSON.stringify(payload),
         });
         const json = await res.json();

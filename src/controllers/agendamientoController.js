@@ -13,6 +13,21 @@ const getFormData = (req) => ({
   motivo: req.body.motivo || '',
 });
 
+const isJsonRequest = (req) => {
+  return req.xhr || req.query.format === 'json' || req.get('Accept')?.includes('application/json') || req.get('X-Requested-With') === 'XMLHttpRequest' || req.get('Content-Type')?.includes('application/json');
+};
+
+export const renderAgendarCita = async (req, res) => {
+  return res.respond({
+    success: true,
+    message: 'Abrir formulario de agendamiento',
+    view: 'agendar-cita',
+    locals: {
+      activePage: 'agendar-cita',
+    },
+  });
+};
+
 export const buscarPacienteHandler = async (req, res) => {
   const { tipoDocumento, documento } = getFormData(req);
 
@@ -33,11 +48,10 @@ export const buscarPacienteHandler = async (req, res) => {
   const paciente = await PacienteService.findPacientePorDocumento(tipoDocumento, documento);
   if (!paciente) {
     const message = 'Paciente no registrado en el sistema';
-    if (req.xhr || req.query.format === 'json') {
+    if (isJsonRequest(req)) {
       return res.respond({ success: false, message, data: {}, status: 404 });
     }
 
-    req.flash('warning', message);
     return res.redirect('/pacientes/nuevo');
   }
 
@@ -95,7 +109,7 @@ export const confirmarAgendamientoHandler = async (req, res) => {
   try {
     const cita = await CitaService.agendarCita(form);
 
-    if (req.xhr || req.query.format === 'json') {
+    if (isJsonRequest(req)) {
       return res.respond({
         success: true,
         message: 'Cita agendada correctamente',

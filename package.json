@@ -4,9 +4,9 @@
   "type": "module",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon --watch src --exec node src/server.js",
-    "init-db": "node src/db/initDB.js"
+    "start": "pnpm exec node src/server.js",
+    "dev": "pnpm exec nodemon --watch src --exec node src/server.js",
+    "init-db": "pnpm exec node src/db/initDB.js"
   },
   "dependencies": {
     "dotenv": "^16.1.4",

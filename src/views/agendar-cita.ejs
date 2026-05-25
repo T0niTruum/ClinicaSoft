@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Agendar Cita - Clínica Del Llano</title>
   <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/app.css" />
   <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <style>
     .stepper-dot { width: 10px; height: 10px; border-radius: 50%; }
@@ -12,7 +13,7 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px);} to { opacity:1; transform: translateY(0);} }
   </style>
 </head>
-<body class="bg-gray-50 font-sans text-gray-800">
+<body class="bg-slate-50 text-slate-800">
 
   <%- include('partials/sidebar') %>
   <div class="ml-64">
@@ -21,8 +22,8 @@
     <main class="max-w-7xl mx-auto p-6 pt-24">
       <%- include('partials/toast') %>
 
-      <div class="bg-white shadow rounded-lg p-6">
-        <h2 class="text-2xl font-semibold mb-4">Agendar Cita</h2>
+      <div class="panel-card card-shadow p-6">
+        <h2 class="text-2xl font-semibold mb-4 page-header">Agendar Cita</h2>
 
         <!-- Stepper -->
         <div x-data="agendarCita()" x-init="init()" class="space-y-6">
@@ -47,7 +48,7 @@
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="md:col-span-2">
                   <label class="block text-sm font-medium text-gray-700">Tipo de documento</label>
-                  <select x-model="form.tipoDocumento" class="mt-1 block w-full rounded-md border-gray-200 p-2">
+                  <select x-model="form.tipoDocumento" class="mt-1 block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-700 transition shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
                     <option value="">Seleccione</option>
                     <option value="CC">Cédula de Ciudadanía</option>
                     <option value="TI">Tarjeta de Identidad</option>
@@ -58,11 +59,11 @@
 
                 <div>
                   <label class="block text-sm font-medium text-gray-700">Número de documento</label>
-                  <input x-model="form.documento" type="text" class="mt-1 block w-full rounded-md border-gray-200 p-2" placeholder="Número de documento" />
+                  <input x-model="form.documento" type="text" @keydown.enter.prevent="verifyPatient()" class="mt-1 block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-700 transition shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100" placeholder="Número de documento" />
                 </div>
 
                 <div class="md:col-span-3 flex items-end">
-                  <button @click.prevent="verifyPatient()" :disabled="loading.verify" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 disabled:opacity-60">
+                  <button @click.prevent="verifyPatient()" :disabled="loading.verify" class="btn-primary disabled:opacity-60">
                     <span x-show="!loading.verify">Verificar Paciente</span>
                     <span x-show="loading.verify">Verificando...</span>
                   </button>
@@ -70,8 +71,6 @@
               </div>
 
               <div x-show="patient !== null" class="mt-4">
-                <%- include('partials/patient-card', { patient: {} }) %>
-                <!-- We will replace above with dynamic render -->
                 <div x-show="patient" class="mt-4">
                   <div class="bg-white shadow rounded-lg p-4">
                     <div class="flex items-center justify-between">
@@ -132,7 +131,7 @@
                       </div>
                     </div>
                     <div class="mt-3 flex justify-end">
-                      <button @click.prevent="selectMedico(med)" :disabled="!med.disponibilidad" class="bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700 disabled:opacity-50">Seleccionar</button>
+                      <button @click.prevent="selectMedico(med)" :disabled="!med.disponibilidad" class="btn-secondary disabled:opacity-50">Seleccionar</button>
                     </div>
                   </div>
                 </template>
@@ -180,8 +179,8 @@
               </div>
 
               <div class="flex justify-end gap-3">
-                <button @click.prevent="prev()" class="px-4 py-2 rounded border">Atrás</button>
-                <button @click.prevent="confirmAgendar()" :disabled="isSubmitting" class="bg-emerald-600 text-white px-4 py-2 rounded disabled:opacity-60">
+                <button @click.prevent="prev()" class="btn-secondary">Atrás</button>
+                <button @click.prevent="confirmAgendar()" :disabled="isSubmitting" class="btn-primary disabled:opacity-60">
                   <span x-show="!isSubmitting">Confirmar y Registrar Agendamiento</span>
                   <span x-show="isSubmitting">Procesando...</span>
                 </button>
@@ -196,6 +195,6 @@
     </main>
   </div>
 
-  <script src="/public/js/agendar-cita.js"></script>
+  <script src="/js/agendar-cita.js"></script>
 </body>
 </html>

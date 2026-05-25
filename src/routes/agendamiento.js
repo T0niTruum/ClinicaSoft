@@ -1,6 +1,7 @@
 import express from 'express';
 import { asyncHandler } from '../middlewares/asyncHandler.js';
 import {
+  renderAgendarCita,
   buscarPacienteHandler,
   listarEspecialidadesYMedicosHandler,
   confirmarAgendamientoHandler,
@@ -8,6 +9,7 @@ import {
 
 const router = express.Router();
 
+router.get('/', asyncHandler(renderAgendarCita));
 router.post('/buscar', asyncHandler(buscarPacienteHandler));
 router.get('/especialidades', asyncHandler(listarEspecialidadesYMedicosHandler));
 router.post('/confirmar', asyncHandler(confirmarAgendamientoHandler));
