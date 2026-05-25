@@ -118,6 +118,34 @@ async function seed() {
       [personaPac2.rows[0].id, '1985-09-20', 'Casada', 'INACTIVO']
     );
 
+    const horariosCitas = await client.query(
+      `SELECT h.id, h.medico_id, h.hora_inicio, h.disponible
+       FROM horario h
+       WHERE h.medico_id IN ($1, $2)
+       ORDER BY h.hora_inicio ASC
+       LIMIT 4`,
+      [personaMed1.rows[0].id, personaMed2.rows[0].id]
+    );
+
+    const citasDemo = [
+      { horarioIdx: 0, motivo: 'Control de arritmia y revisión de marcapasos.', estado: 'FINALIZADO' },
+      { horarioIdx: 1, motivo: 'Consulta por dolor torácico leve y antecedentes.', estado: 'CANCELADO' },
+      { horarioIdx: 2, motivo: 'Control de rutina y solicitud de exámenes.', estado: 'ASIGNADO' },
+    ];
+
+    for (const demo of citasDemo) {
+      const horario = horariosCitas.rows[demo.horarioIdx];
+      if (!horario) continue;
+      await client.query(
+        `INSERT INTO cita (paciente_id, medico_id, horario_id, motivo, estado, fecha_creacion)
+         VALUES ($1, $2, $3, $4, $5, now())`,
+        [personaPac1.rows[0].id, horario.medico_id, horario.id, demo.motivo, demo.estado]
+      );
+      if (demo.estado !== 'CANCELADO') {
+        await client.query('UPDATE horario SET disponible = false WHERE id = $1', [horario.id]);
+      }
+    }
+
     await client.query('COMMIT');
     console.log('Seed data inserted successfully.');
   } catch (err) {

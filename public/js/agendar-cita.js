@@ -35,6 +35,24 @@ function agendarCita() {
       this.loadEspecialidades();
     },
 
+    normalizePatient(raw) {
+      if (!raw) return null;
+      const record = raw.paciente?.estadoPaciente != null ? raw.paciente : raw;
+      const persona = raw.persona || raw;
+      return {
+        id: record.id || raw.id,
+        estadoPaciente: record.estadoPaciente,
+        persona: {
+          nombre: persona.nombre,
+          apellido: persona.apellido,
+          tipoDocumento: persona.tipoDocumento,
+          documento: persona.documento,
+          email: persona.email,
+          telefono: persona.telefono,
+        },
+      };
+    },
+
     buildCalendar() {
       const year = this.calendarYear;
       const month = this.calendarMonth;
@@ -124,27 +142,8 @@ function agendarCita() {
           this.errorBanner = json.message || 'Paciente no registrado en el sistema';
           return;
         }
-        // API returns persona with paciente nested OR flat paciente object
         const raw = json.data?.paciente || json.data;
-        // Normalize: if data has persona.paciente structure (from buscar endpoint)
-        // The buscar endpoint returns: { persona: { ...personaFields, paciente: { estadoPaciente } } }
-        if (raw && raw.persona) {
-          // Format: { ...personaFields } with nested paciente
-          this.patient = {
-            id: raw.paciente?.id || raw.id,
-            estadoPaciente: raw.paciente?.estadoPaciente || raw.estadoPaciente,
-            persona: {
-              nombre: raw.persona?.nombre || raw.nombre,
-              apellido: raw.persona?.apellido || raw.apellido,
-              tipoDocumento: raw.persona?.tipoDocumento || raw.tipoDocumento,
-              documento: raw.persona?.documento || raw.documento,
-              email: raw.persona?.email || raw.email,
-              telefono: raw.persona?.telefono || raw.telefono,
-            }
-          };
-        } else {
-          this.patient = raw;
-        }
+        this.patient = this.normalizePatient(raw);
 
         if (this.patient.estadoPaciente !== 'ACTIVO') {
           this.errorBanner = 'El paciente se encuentra inactivo en el sistema y no está autorizado para agendar citas.';

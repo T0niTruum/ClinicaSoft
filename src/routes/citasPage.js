@@ -1,9 +1,9 @@
 import express from 'express';
 import { asyncHandler } from '../middlewares/asyncHandler.js';
-import { getDashboard } from '../controllers/dashboardController.js';
+import { renderHistorialCitas } from '../controllers/citaController.js';
 
 const router = express.Router();
 
-router.get('/', asyncHandler(getDashboard));
+router.get('/', asyncHandler(renderHistorialCitas));
 
 export default router;

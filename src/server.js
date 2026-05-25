@@ -7,11 +7,12 @@ import pacientesApiRouter from './routes/pacientes.js';
 import pacienteCrudRouter from './routes/pacienteCrud.js';
 import agendamientoRouter from './routes/agendamiento.js';
 import medicosRouter from './routes/medicos.js';
-import citasRouter from './routes/citas.js';
+import citasApiRouter from './routes/citas.js';
+import citasPageRouter from './routes/citasPage.js';
 import healthRouter from './routes/health.js';
-import dashboardRouter from './routes/dashboard.js';
 import { hybridResponder } from './middlewares/responseMiddleware.js';
 import { flashMiddleware } from './middlewares/flashMiddleware.js';
+import { errorHandler } from './middlewares/errorHandler.js';
 
 dotenv.config();
 
@@ -32,15 +33,16 @@ app.use(express.static(path.join(process.cwd(), 'public')));
 app.use(hybridResponder);
 
 app.use('/health', healthRouter);
-app.use('/dashboard', dashboardRouter);
 app.use('/api/pacientes', pacientesApiRouter);
 app.use('/pacientes', pacienteCrudRouter);
 app.use('/agendar-cita', agendamientoRouter);
 app.use('/api/medicos', medicosRouter);
-app.use('/api/citas', citasRouter);
+app.use('/citas', citasPageRouter);
+app.use('/api/citas', citasApiRouter);
 
-// Root redirect to dashboard
-app.get('/', (req, res) => res.redirect('/dashboard'));
+app.get('/', (req, res) => res.redirect('/pacientes'));
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 

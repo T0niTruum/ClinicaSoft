@@ -9,6 +9,10 @@ export class PacienteRepository {
     });
   }
 
+  static async findByIdWithPersona(id, options = {}) {
+    return this.findById(id, options);
+  }
+
   static async findByDocumento(tipoDocumento, documento, options = {}) {
     return Persona.findOne({
       where: { tipoDocumento, documento },

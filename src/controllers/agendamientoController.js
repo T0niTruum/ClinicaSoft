@@ -5,6 +5,19 @@ import { MedicoService } from '../services/medicoService.js';
 import { PacienteService } from '../services/pacienteService.js';
 import { validateAgendamiento } from '../validators/agendamientoValidator.js';
 
+const toPacienteAgendamiento = (persona) => ({
+  id: persona.paciente.id,
+  estadoPaciente: persona.paciente.estadoPaciente,
+  persona: {
+    nombre: persona.nombre,
+    apellido: persona.apellido,
+    tipoDocumento: persona.tipoDocumento,
+    documento: persona.documento,
+    email: persona.email,
+    telefono: persona.telefono,
+  },
+});
+
 const getFormData = (req) => ({
   tipoDocumento: req.body.tipoDocumento || req.query.tipoDocumento || '',
   documento: req.body.documento || req.query.documento || '',
@@ -68,17 +81,14 @@ export const buscarPacienteHandler = async (req, res) => {
     success: true,
     message: 'Paciente válido para agendar citas',
     data: {
-      paciente: {
-        ...paciente.get({ plain: true }),
-        paciente: paciente.paciente.get({ plain: true }),
-      },
+      paciente: toPacienteAgendamiento(paciente),
       especialidades,
       medicos,
     },
     view: 'agendamientoForm',
     locals: {
       form: getFormData(req),
-      paciente: paciente.get({ plain: true }),
+      paciente: toPacienteAgendamiento(paciente),
       especialidades,
       medicos,
     },
@@ -119,7 +129,7 @@ export const confirmarAgendamientoHandler = async (req, res) => {
     }
 
     req.flash('success', 'Cita agendada correctamente');
-    return res.redirect('/dashboard');
+    return res.redirect('/pacientes');
   } catch (error) {
     if (error instanceof ValidationError) {
       const errors = error.errors || [{ message: error.message }];

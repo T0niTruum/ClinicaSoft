@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es" x-data="citasHistorialManager('<%= pacienteId || '' %>')" x-init="init()"
+  @click.away="menuOpenId = null">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Historial de Citas | Clínica Del Llano</title>
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <style>
+    .avatar-circle {
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .avatar-sm {
+      width: 2rem;
+      height: 2rem;
+      font-size: 0.65rem;
+    }
+
+    .badge-scheduled {
+      background: #e0f2fe;
+      color: #0369a1;
+    }
+
+    .badge-completed {
+      background: #d1fae5;
+      color: #047857;
+    }
+
+    .badge-cancelled {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .dot-scheduled { background: #38bdf8; }
+    .dot-completed { background: #10b981; }
+    .dot-cancelled { background: #ef4444; }
+
+    header { height: 56px; }
+
+    [x-cloak] { display: none !important; }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800">
+  <%- include('partials/sidebar', { activePage: 'citas' }) %>
+  <div class="ml-64 min-h-screen bg-slate-50">
+    <%- include('partials/header') %>
+    <main class="px-6 py-8" style="padding-top:4.5rem;">
+      <%- include('partials/toast') %>
+
+      <!-- Breadcrumbs -->
+      <nav class="text-sm text-slate-500 mb-3 flex items-center gap-1.5">
+        <a href="/pacientes" class="hover:text-blue-600 transition">Pacientes</a>
+        <span class="text-slate-300">›</span>
+        <span class="text-slate-700 font-medium">Historial de Citas</span>
+      </nav>
+
+      <!-- Page header -->
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900">Historial de Citas Médicas</h1>
+          <p class="text-sm text-slate-500 mt-1">Consulte y gestione las citas asignadas por paciente.</p>
+        </div>
+        <a href="/agendar-cita"
+          class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          + Agendar Cita
+        </a>
+      </div>
+
+      <!-- Patient selector (when none selected) -->
+      <div x-show="!paciente" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+        <h2 class="text-base font-semibold text-slate-900 mb-2">Seleccionar paciente</h2>
+        <p class="text-sm text-slate-500 mb-4">Busque por número de documento para ver el historial de citas.</p>
+        <div class="relative max-w-md">
+          <input x-model="patientSearch" @input.debounce.300ms="searchPatients()" type="text"
+            placeholder="Buscar por documento..."
+            class="w-full pl-4 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+          <div x-show="patientResults.length > 0"
+            class="absolute z-20 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+            <template x-for="item in patientResults" :key="item.id">
+              <button @click="selectPatient(item)"
+                class="w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-0 text-sm">
+                <span class="font-medium text-slate-800"
+                  x-text="item.persona.nombre + ' ' + item.persona.apellido"></span>
+                <span class="text-slate-500 ml-2"
+                  x-text="item.persona.tipoDocumento + ' ' + item.persona.documento"></span>
+              </button>
+            </template>
+          </div>
+          <p x-show="loading.pacientes" class="text-xs text-slate-400 mt-2">Buscando...</p>
+        </div>
+      </div>
+
+      <!-- Patient card -->
+      <div x-show="paciente" x-cloak
+        class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div class="flex items-center gap-4 flex-1">
+          <div class="avatar-circle text-white bg-gradient-to-br from-slate-400 to-slate-600"
+            x-text="paciente ? paciente.iniciales : ''"></div>
+          <div>
+            <h2 class="text-lg font-bold text-slate-900" x-text="paciente ? paciente.nombre : ''"></h2>
+            <p class="text-sm text-slate-500 mt-0.5">
+              <span x-text="paciente ? ('ID: ' + paciente.documento) : ''"></span>
+              <template x-if="paciente && paciente.edad != null">
+                <span x-text="' • ' + paciente.edad + ' años'"></span>
+              </template>
+              <span x-show="paciente && paciente.estadoPaciente === 'ACTIVO'"
+                class="ml-2 inline-flex rounded-full bg-emerald-100 text-emerald-700 px-2 py-0.5 text-xs font-semibold">Activo</span>
+            </p>
+          </div>
+        </div>
+        <button @click="pacienteId = ''; paciente = null; citas = []; const u = new URL(location.href); u.searchParams.delete('pacienteId'); history.replaceState({}, '', u)"
+          class="text-sm text-slate-500 hover:text-slate-800 underline">Cambiar paciente</button>
+      </div>
+
+      <template x-if="paciente">
+        <div>
+          <!-- Filters -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Fecha desde</label>
+                <input type="date" x-model="filters.fechaDesde" @change="currentPage = 1; loadHistorial()"
+                  class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Fecha hasta</label>
+                <input type="date" x-model="filters.fechaHasta" @change="currentPage = 1; loadHistorial()"
+                  class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Especialidad</label>
+                <select x-model="filters.especialidadId" @change="onEspecialidadChange()"
+                  class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-100">
+                  <option value="">Todas las especialidades</option>
+                  <template x-for="esp in especialidades" :key="esp.id">
+                    <option :value="esp.id" x-text="esp.nombre"></option>
+                  </template>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Profesional</label>
+                <select x-model="filters.medicoId" @change="currentPage = 1; loadHistorial()"
+                  class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-100">
+                  <option value="">Todos los doctores</option>
+                  <template x-for="med in medicos" :key="med.id">
+                    <option :value="med.id" x-text="med.nombre"></option>
+                  </template>
+                </select>
+              </div>
+            </div>
+            <div class="mt-3 flex justify-end">
+              <button @click="clearFilters()"
+                class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                Limpiar Filtros
+              </button>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-left">
+                <thead>
+                  <tr
+                    class="border-b border-slate-100 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    <th class="px-5 py-3.5">Fecha y Hora</th>
+                    <th class="px-5 py-3.5">Especialidad</th>
+                    <th class="px-5 py-3.5">Doctor</th>
+                    <th class="px-5 py-3.5">Motivo</th>
+                    <th class="px-5 py-3.5">Estado</th>
+                    <th class="px-5 py-3.5 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <template x-if="loading.historial">
+                    <tr>
+                      <td colspan="6" class="px-5 py-10 text-center text-slate-400 text-sm">Cargando historial...</td>
+                    </tr>
+                  </template>
+                  <template x-if="!loading.historial && citas.length === 0">
+                    <tr>
+                      <td colspan="6" class="px-5 py-10 text-center text-slate-400 text-sm">No hay citas registradas para
+                        este paciente con los filtros seleccionados.</td>
+                    </tr>
+                  </template>
+                  <template x-for="cita in citas" :key="cita.id">
+                    <tr class="hover:bg-slate-50 transition-colors">
+                      <td class="px-5 py-4 text-sm font-medium text-slate-800"
+                        x-text="formatFechaHora(cita.fechaHora)"></td>
+                      <td class="px-5 py-4 text-sm text-slate-700" x-text="cita.especialidad"></td>
+                      <td class="px-5 py-4">
+                        <div class="flex items-center gap-2.5">
+                          <div class="avatar-circle avatar-sm bg-blue-100 text-blue-700"
+                            x-text="cita.medico.iniciales"></div>
+                          <span class="text-sm text-slate-700" x-text="cita.medico.nombre"></span>
+                        </div>
+                      </td>
+                      <td class="px-5 py-4 text-sm text-slate-600 max-w-xs"
+                        x-text="truncateMotivo(cita.motivo)"></td>
+                      <td class="px-5 py-4">
+                        <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
+                          :class="{
+                            'badge-scheduled': cita.estadoTone === 'scheduled',
+                            'badge-completed': cita.estadoTone === 'completed',
+                            'badge-cancelled': cita.estadoTone === 'cancelled'
+                          }">
+                          <span class="w-1.5 h-1.5 rounded-full"
+                            :class="{
+                              'dot-scheduled': cita.estadoTone === 'scheduled',
+                              'dot-completed': cita.estadoTone === 'completed',
+                              'dot-cancelled': cita.estadoTone === 'cancelled'
+                            }"></span>
+                          <span x-text="cita.estadoLabel"></span>
+                        </span>
+                      </td>
+                      <td class="px-5 py-4">
+                        <div class="flex items-center justify-end gap-1 relative">
+                          <template x-if="cita.puedeModificar">
+                            <button @click="modificarCita(cita)"
+                              class="text-sm font-semibold text-blue-600 hover:text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-50 transition">
+                              Modificar
+                            </button>
+                          </template>
+                          <template x-if="cita.puedeDescargar">
+                            <button @click="descargarResumen()" title="Descargar resumen"
+                              class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                              </svg>
+                            </button>
+                          </template>
+                          <button @click="verDetalle(cita)" title="Ver detalle"
+                            class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                              stroke="currentColor" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </button>
+                          <template x-if="cita.puedeModificar">
+                            <div class="relative">
+                              <button @click.stop="toggleMenu(cita.id)"
+                                class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor"
+                                  viewBox="0 0 20 20">
+                                  <path
+                                    d="M10 6a2 2 0 110-4 2 2 0 010 4zm0 4a2 2 0 110-4 2 2 0 010 4zm0 4a2 2 0 110-4 2 2 0 010 4z" />
+                                </svg>
+                              </button>
+                              <div x-show="menuOpenId === cita.id" x-cloak
+                                class="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg z-10 py-1 text-sm">
+                                <button @click="completarCita(cita)"
+                                  class="w-full text-left px-4 py-2 hover:bg-slate-50 text-slate-700">Marcar completada</button>
+                                <button @click="cancelarCita(cita)"
+                                  class="w-full text-left px-4 py-2 hover:bg-rose-50 text-rose-600">Cancelar cita</button>
+                              </div>
+                            </div>
+                          </template>
+                        </div>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div
+              class="border-t border-slate-100 px-5 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-500 bg-slate-50">
+              <span
+                x-text="total > 0 ? `Mostrando ${citas.length} de ${total} registros` : 'Sin registros'"></span>
+              <div class="flex items-center gap-1">
+                <button @click="prevPage()" :disabled="currentPage <= 1"
+                  class="p-1.5 rounded-lg hover:bg-slate-200 disabled:opacity-40 transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <template x-for="p in pageNumbers" :key="p">
+                  <button @click="goToPage(p)"
+                    class="min-w-[2rem] h-8 rounded-lg text-sm font-medium transition"
+                    :class="p === currentPage ? 'bg-blue-600 text-white' : 'hover:bg-slate-200 text-slate-600'"
+                    x-text="p"></button>
+                </template>
+                <button @click="nextPage()" :disabled="currentPage >= totalPages"
+                  class="p-1.5 rounded-lg hover:bg-slate-200 disabled:opacity-40 transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Clinical note -->
+          <div class="mt-6 rounded-2xl border border-blue-100 bg-blue-50 p-5 flex gap-3">
+            <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">i</div>
+            <div>
+              <h3 class="text-sm font-bold text-blue-900">Nota de Resumen Clínico</h3>
+              <p class="text-sm text-blue-800 mt-1 leading-relaxed">
+                Las citas completadas tienen disponible el resumen clínico y la fórmula médica para descarga.
+                Si necesita una copia física sellada, por favor acérquese al módulo de atención 2.
+              </p>
+            </div>
+          </div>
+        </div>
+      </template>
+    </main>
+  </div>
+  <script src="/js/citas.js"></script>
+</body>
+
+</html>
