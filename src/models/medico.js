@@ -9,6 +9,7 @@ export default (sequelize) => {
     tarjetaProfesional: {
       type: DataTypes.STRING,
       allowNull: true,
+      field: 'tarjeta_profesional',
     },
     disponibilidad: {
       type: DataTypes.BOOLEAN,
