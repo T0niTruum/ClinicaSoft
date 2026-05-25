@@ -42,6 +42,18 @@ app.use('/api/horarios', horariosRouter);
 app.use('/citas', citasPageRouter);
 app.use('/api/citas', citasApiRouter);
 
+app.get('/logout', (req, res) => {
+  console.log('Logout requested. Shutting down application...');
+  res.send('<html><body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; background: #f8fafc;">' +
+           '<div style="text-align: center; padding: 2rem; background: white; border-radius: 1rem; shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);"> ' +
+           '<h1 style="color: #1e293b;">Aplicación Apagada</h1>' +
+           '<p style="color: #64748b;">El servidor se ha detenido correctamente.</p>' +
+           '</div></body></html>');
+  setTimeout(() => {
+    process.exit(0);
+  }, 1000);
+});
+
 app.get('/', (req, res) => res.redirect('/pacientes'));
 
 app.use(errorHandler);

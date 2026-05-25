@@ -1,7 +1,7 @@
 function agendarCita() {
   return {
     step: 0,
-    steps: ['Verificación', 'Especialidad', 'Horario', 'Confirmación'],
+    steps: ['Verificación', 'Agendamiento'],
     form: {
       tipoDocumento: 'CC',
       documento: '',
@@ -41,6 +41,16 @@ function agendarCita() {
       this.selectedDate = this.toLocalDateStr(new Date());
       this.buildCalendar();
       this.loadEspecialidades();
+
+      // Check URL parameters for auto-fill
+      const params = new URLSearchParams(window.location.search);
+      const doc = params.get('documento');
+      const tipo = params.get('tipoDocumento');
+      if (doc) {
+        this.form.documento = doc;
+        if (tipo) this.form.tipoDocumento = tipo;
+        this.verifyPatient();
+      }
     },
 
     normalizePatient(raw) {
