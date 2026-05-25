@@ -1,5 +1,5 @@
-function agendarCita() {
-  return {
+document.addEventListener('alpine:init', () => {
+  Alpine.data('agendarCita', () => ({
     step: 0,
     steps: ['Verificación', 'Agendamiento'],
     form: {
@@ -317,5 +317,5 @@ function agendarCita() {
         this.isSubmitting = false;
       }
     },
-  };
-}
+  }));
+});

@@ -1,5 +1,5 @@
-function citasHistorialManager(initialPacienteId = '') {
-  return {
+document.addEventListener('alpine:init', () => {
+  Alpine.data('citasHistorialManager', (initialPacienteId = '') => ({
     pacienteId: initialPacienteId || '',
     paciente: null,
     citas: [],
@@ -275,5 +275,5 @@ function citasHistorialManager(initialPacienteId = '') {
     modificarCita(cita) {
       window.location.href = `/agendar-cita?tipoDocumento=${encodeURIComponent(this.paciente.tipoDocumento)}&documento=${encodeURIComponent(this.paciente.documento)}`;
     },
-  };
-}
+  }));
+});

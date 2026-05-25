@@ -1,5 +1,5 @@
-function pacienteManager() {
-  return {
+document.addEventListener('alpine:init', () => {
+  Alpine.data('pacienteManager', () => ({
     loading: { patients: false, saving: false, confirming: false },
     patients: [],
     totalPatients: 0,
@@ -216,5 +216,5 @@ function pacienteManager() {
         this.confirming = false;
       }
     },
-  };
-}
+  }));
+});
