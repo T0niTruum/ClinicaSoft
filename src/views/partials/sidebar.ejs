@@ -5,19 +5,19 @@
   <nav class="p-4">
     <ul class="space-y-2">
       <li>
-        <a href="/pacientes" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-50 text-gray-700">
-          <span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+        <a href="/pacientes" class="flex items-center gap-3 px-3 py-2 rounded transition ${typeof activePage !== 'undefined' && activePage === 'pacientes' ? 'bg-emerald-50 text-emerald-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}">
+          <span class="w-1.5 h-1.5 rounded-full ${typeof activePage !== 'undefined' && activePage === 'pacientes' ? 'bg-emerald-500' : 'bg-gray-300'}"></span>
           Pacientes
         </a>
       </li>
       <li>
-        <a href="/agendar-cita" class="flex items-center gap-3 px-3 py-2 rounded bg-emerald-50 text-emerald-700 font-medium">
+        <a href="/agendar-cita" class="flex items-center gap-3 px-3 py-2 rounded transition ${typeof activePage !== 'undefined' && activePage === 'agendar-cita' ? 'bg-emerald-50 text-emerald-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7H3v12a2 2 0 002 2z"/></svg>
           Agendar Cita
         </a>
       </li>
       <li>
-        <a href="/citas" class="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-50 text-gray-700">
+        <a href="/citas" class="flex items-center gap-3 px-3 py-2 rounded transition ${typeof activePage !== 'undefined' && activePage === 'citas' ? 'bg-emerald-50 text-emerald-700 font-medium' : 'hover:bg-gray-50 text-gray-700'}">
           Citas Asignadas
         </a>
       </li>

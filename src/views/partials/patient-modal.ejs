@@ -1,0 +1,111 @@
+<div x-show="modalOpen" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop px-4 py-6" style="display:none;">
+  <div @click.outside="closeModal()" x-show="modalOpen" x-transition class="relative w-full max-w-2xl rounded-[2rem] bg-white shadow-2xl animate-fade-in overflow-hidden">
+    <div class="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+      <div>
+        <p class="text-sm uppercase tracking-[0.2em] text-emerald-600">Formulario</p>
+        <h2 class="text-2xl font-semibold text-slate-900" x-text="isEditing ? 'Editar paciente' : 'Registrar paciente'"></h2>
+      </div>
+      <button @click="closeModal()" class="rounded-full p-2 text-slate-500 hover:bg-slate-100">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <form @submit.prevent="savePatient()" class="space-y-6 px-6 py-6">
+      <fieldset :disabled="isViewing" class="space-y-6">
+        <div class="grid gap-6 sm:grid-cols-2">
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">Tipo de Documento</label>
+            <select x-model="form.tipoDocumento" :class="(isEditing || isViewing) ? 'bg-slate-100 cursor-not-allowed' : ''" :disabled="isEditing || isViewing" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100">
+              <option value="">Seleccione</option>
+              <option value="CC">CC</option>
+              <option value="TI">TI</option>
+              <option value="CE">CE</option>
+              <option value="RC">RC</option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-slate-700">Número de Documento</label>
+            <input x-model="form.documento" type="text" :readonly="isEditing || isViewing" :class="(isEditing || isViewing) ? 'bg-slate-100 cursor-not-allowed' : ''" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100" />
+          </div>
+        </div>
+
+      <div class="grid gap-6 sm:grid-cols-2">
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-slate-700">Nombres</label>
+          <input x-model="form.nombre" type="text" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100" />
+        </div>
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-slate-700">Apellidos</label>
+          <input x-model="form.apellido" type="text" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100" />
+        </div>
+      </div>
+
+      <div class="grid gap-6 sm:grid-cols-3">
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-slate-700">Fecha de Nacimiento</label>
+          <input x-model="form.fechaNacimiento" type="date" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100" />
+        </div>
+        <div class="space-y-2 sm:col-span-2">
+          <label class="block text-sm font-medium text-slate-700">Estado Civil</label>
+          <select x-model="form.estadoCivil" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100">
+            <option value="">Seleccione</option>
+            <option>Soltero/a</option>
+            <option>Casado/a</option>
+            <option>Unión libre</option>
+            <option>Divorciado/a</option>
+            <option>Viudo/a</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid gap-6 sm:grid-cols-2">
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-slate-700">Correo Electrónico</label>
+          <input x-model="form.email" type="email" @input="validateEmail()" :class="emailInvalid ? 'input-invalid' : 'border-slate-200'" class="w-full rounded-2xl border bg-white px-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100" placeholder="usuario@dominio.com" />
+          <p x-show="emailInvalid" class="text-invalid text-sm">Formato de correo electrónico inválido (Ej: usuario@dominio.com)</p>
+        </div>
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-slate-700">Teléfono</label>
+          <div class="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+            <span class="text-slate-500">+57</span>
+            <input x-model="form.telefono" type="text" class="w-full bg-transparent text-sm focus:outline-none" placeholder="300 000 0000" />
+          </div>
+        </div>
+      </div>
+
+      <div class="grid gap-6 md:grid-cols-2">
+        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+          <h3 class="text-sm font-semibold text-slate-900">Estado del Paciente</h3>
+          <p class="mt-2 text-sm text-slate-500">Activa o inactiva a este paciente. Los pacientes inactivos no podrán agendar citas.</p>
+          <div class="mt-4 flex items-center justify-between gap-4">
+            <div class="text-sm font-medium text-slate-700" x-text="form.estadoPaciente === 'ACTIVO' ? 'Activo' : 'Inactivo'"></div>
+            <button type="button" @click="toggleStatus()" class="rounded-full border px-4 py-2 text-sm font-semibold transition"
+              :class="form.estadoPaciente === 'ACTIVO' ? 'border-emerald-500 bg-emerald-100 text-emerald-700' : 'border-rose-500 bg-rose-100 text-rose-700'">
+              <span x-text="form.estadoPaciente === 'ACTIVO' ? 'ACTIVO' : 'INACTIVO'"></span>
+            </button>
+          </div>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-500 flex gap-3">
+          <div class="mt-1 h-9 w-9 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 16h-1v-4h-1m4-4h.01M12 20c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8z"/></svg>
+          </div>
+          <div>
+            <p class="font-semibold text-slate-900">Nota:</p>
+            <p class="mt-1 leading-6">Los pacientes en estado INACTIVO no podrán agendar nuevas citas médicas.</p>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <div class="sticky bottom-0 left-0 right-0 border-t border-slate-200 bg-white px-6 py-4 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+      <div class="text-sm text-slate-500">Los cambios se guardarán en el sistema de forma segura.</div>
+      <div class="flex items-center gap-3">
+        <button @click="closeModal()" class="rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Cerrar</button>
+        <button x-show="!isViewing" @click="savePatient()" :disabled="saving || emailInvalid" class="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition disabled:opacity-50">
+          <span x-show="!saving">Guardar Paciente</span>
+          <span x-show="saving">Guardando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

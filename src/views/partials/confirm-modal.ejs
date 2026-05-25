@@ -1,0 +1,28 @@
+<div x-show="confirmModalOpen" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center modal-backdrop px-4 py-6" style="display:none;">
+  <div @click.outside="closeConfirmModal()" x-show="confirmModalOpen" x-transition class="relative w-full max-w-xl rounded-[2rem] bg-white shadow-2xl animate-fade-in overflow-hidden">
+    <div class="border-b border-slate-200 px-6 py-5">
+      <div class="flex items-center gap-3">
+        <div class="flex h-12 w-12 items-center justify-center rounded-3xl bg-rose-100 text-rose-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10 3h4l1 1 1 16H8L9 4l1-1z"/></svg>
+        </div>
+        <div>
+          <p class="text-xl font-semibold text-slate-900">Confirmar inactivación</p>
+          <p class="text-sm text-slate-500">Esta acción no puede deshacerse y evita que el paciente agende nuevas citas.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="px-6 py-6">
+      <p class="text-slate-700">¿Deseas inactivar al paciente <strong x-text="selectedPatient ? selectedPatient.persona.nombre + ' ' + selectedPatient.persona.apellido : ''"></strong>?</p>
+      <p class="mt-3 text-sm text-slate-500">Una vez confirmado, el paciente pasará al estado INACTIVO y quedará restringido para nuevas citas.</p>
+    </div>
+
+    <div class="border-t border-slate-200 bg-slate-50 px-6 py-4 flex flex-col gap-3 sm:flex-row sm:justify-end">
+      <button @click="closeConfirmModal()" class="rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Cancelar</button>
+      <button @click="confirmInactivation()" :disabled="confirming" class="rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-50">
+        <span x-show="!confirming">Confirmar Inactivación</span>
+        <span x-show="confirming">Inactivando...</span>
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es" x-data="pacienteManager()">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Pacientes | Clínica Del Llano</title>
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <style>
+    .modal-backdrop { background: rgba(15, 23, 42, 0.65); }
+    .animate-fade-in { animation: fadeIn 0.25s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .input-invalid { border-color: #ef4444; }
+    .text-invalid { color: #b91c1c; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <%- include('partials/sidebar', { activePage: 'pacientes' }) %>
+  <div class="ml-64 min-h-screen">
+    <%- include('partials/header') %>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+      <%- include('partials/toast') %>
+
+      <section class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p class="text-sm uppercase tracking-[0.24em] text-emerald-600 font-semibold">Portal Médico</p>
+          <h1 class="text-3xl font-semibold text-slate-900">Gestión de Pacientes</h1>
+          <p class="mt-2 text-slate-500 max-w-2xl">Administre el directorio de pacientes de la clínica de forma segura y moderna.</p>
+        </div>
+
+        <button @click="openPatientModal()" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-white shadow-lg shadow-emerald-200/40 hover:bg-emerald-700 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m7-7H5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Registrar Nuevo Paciente
+        </button>
+      </section>
+
+      <div class="grid gap-6">
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+          <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 class="text-xl font-semibold text-slate-900">Pacientes registrados</h2>
+              <p class="text-sm text-slate-500">Revise, edite o inhabilite pacientes existentes con un solo clic.</p>
+            </div>
+            <div class="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 md:w-auto md:grid-cols-3">
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <label class="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Estado</label>
+                <select x-model="filters.estado" @change="loadPatients()" class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100">
+                  <option value="">Todos</option>
+                  <option value="ACTIVO">Activos</option>
+                  <option value="INACTIVO">Inactivos</option>
+                </select>
+              </div>
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 sm:col-span-2">
+                <label class="block text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Buscar por documento</label>
+                <div class="mt-2 flex items-center gap-2">
+                  <input x-model="filters.documento" @input.debounce.300ms="loadPatients()" type="text" placeholder="123456789" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="border-b border-slate-200 px-6 py-4 bg-slate-50">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 class="text-lg font-semibold text-slate-900">Directorio de pacientes</h3>
+                <p class="text-sm text-slate-500">Listado detallado con estado, correo y acciones disponibles.</p>
+              </div>
+              <div class="text-sm text-slate-500">Mostrando <span x-text="patients.length || 0"></span> pacientes</div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-left">
+              <thead class="bg-slate-50 text-slate-700">
+                <tr>
+                  <th class="px-6 py-4 text-sm font-semibold uppercase tracking-[0.2em]">Tipo</th>
+                  <th class="px-6 py-4 text-sm font-semibold uppercase tracking-[0.2em]">Documento</th>
+                  <th class="px-6 py-4 text-sm font-semibold uppercase tracking-[0.2em]">Paciente</th>
+                  <th class="px-6 py-4 text-sm font-semibold uppercase tracking-[0.2em]">Correo</th>
+                  <th class="px-6 py-4 text-sm font-semibold uppercase tracking-[0.2em]">Teléfono</th>
+                  <th class="px-6 py-4 text-sm font-semibold uppercase tracking-[0.2em]">Estado</th>
+                  <th class="px-6 py-4 text-sm font-semibold uppercase tracking-[0.2em]">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 bg-white">
+                <template x-if="loading.patients">
+                  <tr>
+                    <td colspan="7" class="px-6 py-12">
+                      <div class="space-y-3">
+                        <div class="h-4 w-1/4 rounded-full bg-slate-200 animate-pulse"></div>
+                        <div class="h-4 w-1/2 rounded-full bg-slate-200 animate-pulse"></div>
+                        <div class="h-4 w-3/4 rounded-full bg-slate-200 animate-pulse"></div>
+                      </div>
+                    </td>
+                  </tr>
+                </template>
+
+                <template x-if="!loading.patients && patients.length===0">
+                  <tr>
+                    <td colspan="7" class="px-6 py-12 text-center text-slate-500">No se encontraron pacientes. Intenta otro filtro o crea un nuevo paciente.</td>
+                  </tr>
+                </template>
+
+                <template x-for="paciente in patients" :key="paciente.id">
+                  <tr class="hover:bg-slate-50 transition">
+                    <td class="px-6 py-4 text-sm text-slate-700"><span x-text="paciente.persona.tipoDocumento"></span></td>
+                    <td class="px-6 py-4 text-sm text-slate-700"><span x-text="paciente.persona.documento"></span></td>
+                    <td class="px-6 py-4 text-sm text-slate-700">
+                      <div class="font-medium" x-text="paciente.persona.nombre + ' ' + paciente.persona.apellido"></div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-700"><span x-text="paciente.persona.email || '—'"></span></td>
+                    <td class="px-6 py-4 text-sm text-slate-700"><span x-text="paciente.persona.telefono || '—'"></span></td>
+                    <td class="px-6 py-4">
+                      <span x-text="paciente.paciente.estadoPaciente" :class="paciente.paciente.estadoPaciente === 'ACTIVO' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'" class="inline-flex rounded-full px-3 py-1 text-xs font-semibold"></span>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="flex flex-wrap gap-2">
+                        <button @click.prevent="viewPatient(paciente)" class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                          Ver
+                        </button>
+                        <button @click.prevent="openPatientModal(paciente)" class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15.232 5.232l3.536 3.536M9 11l6-6L9 11z"/><path d="M9 11l-3.5 3.5a2 2 0 00-.5 1.5v2.5h2.5a2 2 0 001.5-.5L15 13"/></svg>
+                          Editar
+                        </button>
+                        <button @click.prevent="openConfirmModal(paciente)" class="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 hover:bg-rose-100">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8l-6 6-6-6"/></svg>
+                          Inactivar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <%- include('partials/patient-modal') %>
+      <%- include('partials/confirm-modal') %>
+
+    </main>
+  </div>
+
+  <script src="/js/pacientes.js"></script>
+</body>
+</html>

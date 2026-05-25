@@ -21,9 +21,10 @@ export const listarPacientes = async (req, res) => {
       page,
       pageSize,
     },
-    view: 'pacienteList',
+    view: 'pacientes',
     locals: {
-      pacientes: pacientes.rows,
+      activePage: 'pacientes',
+      patients: pacientes.rows,
       pagination: {
         total: pacientes.count,
         page,
