@@ -3,20 +3,9 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { pool } from './postgres.js';
+import { buildHorariosSemana, insertHorarios, startOfWeek } from './horarioSemana.js';
 
 dotenv.config();
-
-function setTime(date, hours, minutes) {
-  const n = new Date(date);
-  n.setHours(hours, minutes, 0, 0);
-  return n;
-}
-
-function addDays(date, days) {
-  const n = new Date(date);
-  n.setDate(n.getDate() + days);
-  return n;
-}
 
 async function executeSqlSchema() {
   const __filename = fileURLToPath(import.meta.url);
@@ -70,34 +59,10 @@ async function seed() {
       [personaMed2.rows[0].id, 'TP-1002', true, esp2.rows[0].id]
     );
 
-    const now = new Date();
-    const horarios1 = [
-      { fecha: addDays(now, 1), horaInicio: setTime(addDays(now, 1), 9, 0), horaFin: setTime(addDays(now, 1), 9, 30), disponible: true },
-      { fecha: addDays(now, 2), horaInicio: setTime(addDays(now, 2), 10, 0), horaFin: setTime(addDays(now, 2), 10, 30), disponible: true },
-      { fecha: addDays(now, 3), horaInicio: setTime(addDays(now, 3), 11, 0), horaFin: setTime(addDays(now, 3), 11, 30), disponible: true },
-      { fecha: addDays(now, 4), horaInicio: setTime(addDays(now, 4), 14, 0), horaFin: setTime(addDays(now, 4), 14, 30), disponible: true },
-      { fecha: addDays(now, -3), horaInicio: setTime(addDays(now, -3), 8, 0), horaFin: setTime(addDays(now, -3), 8, 30), disponible: false }
-    ];
-
-    for (const horario of horarios1) {
-      await client.query(
-        'INSERT INTO horario (fecha, hora_inicio, hora_fin, disponible, medico_id) VALUES ($1, $2, $3, $4, $5)',
-        [horario.fecha.toISOString(), horario.horaInicio.toISOString(), horario.horaFin.toISOString(), horario.disponible, personaMed1.rows[0].id]
-      );
-    }
-
-    const horarios2 = [
-      { fecha: addDays(now, 1), horaInicio: setTime(addDays(now, 1), 15, 0), horaFin: setTime(addDays(now, 1), 15, 30), disponible: true },
-      { fecha: addDays(now, 5), horaInicio: setTime(addDays(now, 5), 9, 0), horaFin: setTime(addDays(now, 5), 9, 30), disponible: true },
-      { fecha: addDays(now, 6), horaInicio: setTime(addDays(now, 6), 10, 0), horaFin: setTime(addDays(now, 6), 10, 30), disponible: true },
-      { fecha: addDays(now, -1), horaInicio: setTime(addDays(now, -1), 12, 0), horaFin: setTime(addDays(now, -1), 12, 30), disponible: false }
-    ];
-
-    for (const horario of horarios2) {
-      await client.query(
-        'INSERT INTO horario (fecha, hora_inicio, hora_fin, disponible, medico_id) VALUES ($1, $2, $3, $4, $5)',
-        [horario.fecha.toISOString(), horario.horaInicio.toISOString(), horario.horaFin.toISOString(), horario.disponible, personaMed2.rows[0].id]
-      );
+    const weekStart = startOfWeek(new Date());
+    const medicoIds = [personaMed1.rows[0].id, personaMed2.rows[0].id];
+    for (const medicoId of medicoIds) {
+      await insertHorarios(client, buildHorariosSemana(weekStart, medicoId));
     }
 
     const personaPac1 = await client.query(

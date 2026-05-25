@@ -7,6 +7,7 @@ import pacientesApiRouter from './routes/pacientes.js';
 import pacienteCrudRouter from './routes/pacienteCrud.js';
 import agendamientoRouter from './routes/agendamiento.js';
 import medicosRouter from './routes/medicos.js';
+import horariosRouter from './routes/horarios.js';
 import citasApiRouter from './routes/citas.js';
 import citasPageRouter from './routes/citasPage.js';
 import healthRouter from './routes/health.js';
@@ -37,6 +38,7 @@ app.use('/api/pacientes', pacientesApiRouter);
 app.use('/pacientes', pacienteCrudRouter);
 app.use('/agendar-cita', agendamientoRouter);
 app.use('/api/medicos', medicosRouter);
+app.use('/api/horarios', horariosRouter);
 app.use('/citas', citasPageRouter);
 app.use('/api/citas', citasApiRouter);
 
@@ -46,8 +48,12 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 
+const terminalLink = (text, url) => `\u001b]8;;${url}\u0007${text}\u001b]8;;\u0007`;
+
 app.listen(PORT, () => {
+  const url = `http://localhost:${PORT}`;
   console.log(`ClinicaDelLlano backend listening on port ${PORT}`);
+  console.log(`  → ${terminalLink(url, url)}`);
 });
 
 export default app;

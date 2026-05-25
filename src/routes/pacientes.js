@@ -35,7 +35,8 @@ router.get('/:id', asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: 'Paciente no encontrado' });
   }
 
-  return res.json({ success: true, message: 'Paciente cargado', data: paciente });
+  const data = paciente.get ? paciente.get({ plain: true }) : paciente;
+  return res.json({ success: true, message: 'Paciente cargado', data });
 }));
 
 router.post('/', asyncHandler(async (req, res) => {

@@ -14,7 +14,7 @@ function agendarCita() {
     especialidades: [],
     medicos: [],
     horarios: [],
-    selectedDate: new Date().toISOString().slice(0, 10),
+    selectedDate: '',
     selectedHorario: null,
     loading: { verify: false, especialidades: false, medicos: false, horarios: false },
     isSubmitting: false,
@@ -30,7 +30,15 @@ function agendarCita() {
       return months[this.calendarMonth] + ' ' + this.calendarYear;
     },
 
+    toLocalDateStr(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    },
+
     init() {
+      this.selectedDate = this.toLocalDateStr(new Date());
       this.buildCalendar();
       this.loadEspecialidades();
     },
@@ -40,7 +48,7 @@ function agendarCita() {
       const record = raw.paciente?.estadoPaciente != null ? raw.paciente : raw;
       const persona = raw.persona || raw;
       return {
-        id: record.id || raw.id,
+        id: record.id || raw.paciente?.id || raw.id,
         estadoPaciente: record.estadoPaciente,
         persona: {
           nombre: persona.nombre,
@@ -59,20 +67,20 @@ function agendarCita() {
       const firstDay = new Date(year, month, 1).getDay();
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       const daysInPrevMonth = new Date(year, month, 0).getDate();
-      const today = new Date().toISOString().slice(0, 10);
+      const today = this.toLocalDateStr(new Date());
       const days = [];
 
       // Previous month padding
       for (let i = firstDay - 1; i >= 0; i--) {
         const d = daysInPrevMonth - i;
         const date = new Date(year, month - 1, d);
-        days.push({ day: d, date: date.toISOString().slice(0, 10), currentMonth: false, isToday: false });
+        days.push({ day: d, date: this.toLocalDateStr(date), currentMonth: false, isToday: false });
       }
 
       // Current month
       for (let d = 1; d <= daysInMonth; d++) {
         const date = new Date(year, month, d);
-        const dateStr = date.toISOString().slice(0, 10);
+        const dateStr = this.toLocalDateStr(date);
         days.push({ day: d, date: dateStr, currentMonth: true, isToday: dateStr === today });
       }
 
@@ -80,7 +88,7 @@ function agendarCita() {
       const remaining = 42 - days.length;
       for (let d = 1; d <= remaining; d++) {
         const date = new Date(year, month + 1, d);
-        days.push({ day: d, date: date.toISOString().slice(0, 10), currentMonth: false, isToday: false });
+        days.push({ day: d, date: this.toLocalDateStr(date), currentMonth: false, isToday: false });
       }
 
       this.calendarDays = days;
@@ -188,7 +196,14 @@ function agendarCita() {
           headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         });
         const json = await res.json();
-        this.medicos = json.data || json;
+        const rows = json.data || json;
+        this.medicos = Array.isArray(rows) ? rows.map((med) => ({
+          ...med,
+          persona: med.persona || {
+            nombre: med.nombre,
+            apellido: med.apellido,
+          },
+        })) : [];
       } catch (err) {
         console.error(err);
       } finally {
@@ -197,16 +212,34 @@ function agendarCita() {
     },
 
     async loadHorarios() {
-      if (!this.form.medicoId) return;
+      if (!this.form.medicoId || !this.selectedDate) {
+        this.horarios = [];
+        this.selectedHorario = null;
+        this.form.horarioId = '';
+        return;
+      }
       this.loading.horarios = true;
+      this.selectedHorario = null;
+      this.form.horarioId = '';
       try {
-        const res = await fetch('/api/horarios?medicoId=' + encodeURIComponent(this.form.medicoId) + '&fecha=' + encodeURIComponent(this.selectedDate), {
+        const params = new URLSearchParams({
+          medicoId: this.form.medicoId,
+          fecha: this.selectedDate,
+        });
+        const res = await fetch(`/api/horarios?${params}`, {
           headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         });
         const json = await res.json();
-        this.horarios = json.data || json;
+        if (!res.ok || !json.success) {
+          this.horarios = [];
+          showToast('error', json.message || 'No se pudieron cargar los horarios');
+          return;
+        }
+        this.horarios = Array.isArray(json.data) ? json.data : [];
       } catch (err) {
         console.error(err);
+        this.horarios = [];
+        showToast('error', 'Error al cargar los horarios disponibles');
       } finally {
         this.loading.horarios = false;
       }
@@ -262,7 +295,10 @@ function agendarCita() {
         this.form.motivo = '';
         this.selectedHorario = null;
         this.form.horarioId = '';
-        setTimeout(() => { window.location.href = '/citas'; }, 900);
+        const pacienteId = this.patient?.id;
+        if (pacienteId) sessionStorage.setItem('ultimoPacienteCitas', pacienteId);
+        const destino = pacienteId ? `/citas?pacienteId=${encodeURIComponent(pacienteId)}` : '/citas';
+        setTimeout(() => { window.location.href = destino; }, 900);
       } catch (err) {
         console.error(err);
         this.errorBanner = 'Error al agendar la cita';

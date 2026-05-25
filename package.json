@@ -6,7 +6,8 @@
   "scripts": {
     "start": "pnpm exec node src/server.js",
     "dev": "pnpm exec nodemon --watch src --exec node src/server.js",
-    "init-db": "pnpm exec node src/db/initDB.js"
+    "init-db": "pnpm exec node src/db/initDB.js",
+    "seed-horarios": "pnpm exec node src/db/seedHorariosSemana.js"
   },
   "dependencies": {
     "dotenv": "^16.1.4",

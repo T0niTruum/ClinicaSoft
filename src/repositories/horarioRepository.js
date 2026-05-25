@@ -13,6 +13,24 @@ export class HorarioRepository {
     return Horario.findByPk(id, { ...options });
   }
 
+  static async listDisponiblesByMedicoAndFecha(medicoId, fecha, options = {}) {
+    const dayStart = new Date(`${fecha}T00:00:00`);
+    const dayEnd = new Date(`${fecha}T23:59:59.999`);
+
+    return Horario.findAll({
+      where: {
+        medicoId,
+        disponible: true,
+        horaInicio: {
+          [Op.gte]: dayStart,
+          [Op.lte]: dayEnd,
+        },
+      },
+      order: [['horaInicio', 'ASC']],
+      ...options,
+    });
+  }
+
   static async listUpcomingAvailable(limit = 5, options = {}) {
     return Horario.findAll({
       where: {

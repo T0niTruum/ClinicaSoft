@@ -5,6 +5,15 @@ const router = express.Router();
 
 router.get('/', async (req, res) => {
   try {
+    const { especialidadId } = req.query;
+    const params = [];
+    let whereClause = 'WHERE m.disponibilidad = true';
+
+    if (especialidadId) {
+      params.push(especialidadId);
+      whereClause += ` AND m.especialidad_id = $${params.length}`;
+    }
+
     const result = await pool.query(`
       SELECT
         m.id,
@@ -23,11 +32,25 @@ router.get('/', async (req, res) => {
       FROM medico m
       JOIN persona p ON p.id = m.id
       JOIN especialidad e ON e.id = m.especialidad_id
+      ${whereClause}
       ORDER BY p.apellido, p.nombre
-    `);
-    res.json(result.rows);
+    `, params);
+
+    const medicos = result.rows.map((row) => ({
+      ...row,
+      persona: {
+        nombre: row.nombre,
+        apellido: row.apellido,
+        tipoDocumento: row.tipoDocumento,
+        documento: row.documento,
+        email: row.email,
+        telefono: row.telefono,
+      },
+    }));
+
+    res.json({ success: true, data: medicos });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    res.status(500).json({ success: false, error: String(err) });
   }
 });
 

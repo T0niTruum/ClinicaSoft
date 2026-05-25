@@ -77,22 +77,37 @@ export class CitaRepository {
       horarioInclude.where = horarioWhere;
     }
 
-    return Cita.findAndCountAll({
+    const include = [
+      horarioInclude,
+      medicoInclude,
+      {
+        model: Paciente,
+        as: 'paciente',
+        include: [{ model: Persona, as: 'persona' }],
+      },
+    ];
+
+    const rows = await Cita.findAll({
       where,
-      include: [
-        horarioInclude,
-        medicoInclude,
-        {
-          model: Paciente,
-          as: 'paciente',
-          include: [{ model: Persona, as: 'persona' }],
-        },
-      ],
+      include,
       order: [[{ model: Horario, as: 'horario' }, 'horaInicio', 'DESC']],
       offset: (page - 1) * pageSize,
       limit: pageSize,
-      distinct: true,
       ...options,
     });
+
+    const countIncludes = [];
+    if (Object.keys(horarioWhere).length > 0) {
+      countIncludes.push({ model: Horario, as: 'horario', where: horarioWhere, required: true });
+    }
+    if (especialidadId) {
+      countIncludes.push({ model: Medico, as: 'medico', where: { especialidadId }, required: true });
+    }
+
+    const total = countIncludes.length > 0
+      ? await Cita.count({ where, include: countIncludes, distinct: true })
+      : await Cita.count({ where });
+
+    return { rows, count: total };
   }
 }

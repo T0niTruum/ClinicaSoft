@@ -342,7 +342,7 @@
                         <option value="">-- Seleccionar Médico --</option>
                         <template x-for="med in medicos" :key="med.id">
                           <option :value="med.id" :disabled="!med.disponibilidad"
-                            x-text="'Dr. ' + med.persona.nombre + ' ' + med.persona.apellido + (med.tarjetaProfesional ? ' - TP: ' + med.tarjetaProfesional : '')">
+                            x-text="'Dr. ' + (med.persona?.nombre || med.nombre || '') + ' ' + (med.persona?.apellido || med.apellido || '') + (med.tarjetaProfesional ? ' - TP: ' + med.tarjetaProfesional : '')">
                           </option>
                         </template>
                       </select>
@@ -403,7 +403,8 @@
                       <span class="text-xs text-slate-400"
                         x-text="selectedDate ? new Date(selectedDate + 'T12:00:00').toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long'}) : 'Seleccione una fecha'"></span>
                     </div>
-                    <div x-show="horarios.length > 0" class="grid grid-cols-2 gap-2">
+                    <div x-show="loading.horarios" class="text-center text-slate-400 text-sm py-8">Cargando horarios...</div>
+                    <div x-show="!loading.horarios && horarios.length > 0" class="grid grid-cols-2 gap-2">
                       <template x-for="h in horarios" :key="h.id">
                         <button @click.prevent="selectHorario(h)"
                           :disabled="!h.disponible || new Date(h.horaInicio) <= new Date()" :class="{
@@ -416,7 +417,7 @@
                         </button>
                       </template>
                     </div>
-                    <div x-show="horarios.length === 0" class="text-center text-slate-400 text-sm py-8">
+                    <div x-show="!loading.horarios && horarios.length === 0" class="text-center text-slate-400 text-sm py-8">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2 text-slate-300" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round"

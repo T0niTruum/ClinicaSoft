@@ -31,6 +31,10 @@ function citasHistorialManager(initialPacienteId = '') {
     },
 
     init() {
+      if (!this.pacienteId) {
+        const saved = sessionStorage.getItem('ultimoPacienteCitas');
+        if (saved) this.pacienteId = saved;
+      }
       this.loadFiltros();
       if (this.pacienteId) {
         this.loadPacienteResumen().then(() => this.loadHistorial());
@@ -111,6 +115,7 @@ function citasHistorialManager(initialPacienteId = '') {
 
     selectPatient(item) {
       this.pacienteId = item.id;
+      sessionStorage.setItem('ultimoPacienteCitas', item.id);
       this.paciente = {
         id: item.id,
         nombre: `${item.persona.nombre} ${item.persona.apellido}`,
