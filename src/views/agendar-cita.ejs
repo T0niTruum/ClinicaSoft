@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es" x-data>
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,193 +9,494 @@
   <link rel="stylesheet" href="/css/app.css" />
   <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <style>
-    .stepper-dot { width: 10px; height: 10px; border-radius: 50%; }
-    .animate-fade { animation: fadeIn .4s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px);} to { opacity:1; transform: translateY(0);} }
+    header {
+      height: 56px;
+    }
+
+    .animate-fade {
+      animation: fadeIn .3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Stepper */
+    .step-connector {
+      flex: 1;
+      height: 2px;
+      background: #e2e8f0;
+      margin: 0 0.5rem;
+      margin-top: -1.25rem;
+    }
+
+    .step-connector.done {
+      background: #2563eb;
+    }
+
+    /* Time slots */
+    .slot-btn {
+      border: 1.5px solid #e2e8f0;
+      border-radius: 0.75rem;
+      padding: 0.6rem 0.5rem;
+      text-align: center;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      background: #fff;
+      color: #1e40af;
+    }
+
+    .slot-btn:hover:not(:disabled) {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .slot-btn.selected {
+      background: #1e40af;
+      color: #fff;
+      border-color: #1e40af;
+    }
+
+    .slot-btn:disabled {
+      background: #f8fafc;
+      color: #94a3b8;
+      cursor: not-allowed;
+      border-color: #e2e8f0;
+    }
+
+    .slot-btn.past {
+      background: #f1f5f9;
+      color: #cbd5e1;
+    }
+
+    /* Calendar */
+    .cal-day {
+      width: 2.1rem;
+      height: 2.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: background .12s;
+    }
+
+    .cal-day:hover {
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .cal-day.today {
+      background: #1e40af;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .cal-day.other-month {
+      color: #cbd5e1;
+      cursor: default;
+    }
+
+    .cal-day.other-month:hover {
+      background: none;
+      color: #cbd5e1;
+    }
   </style>
 </head>
+
 <body class="bg-slate-50 text-slate-800">
 
-  <%- include('partials/sidebar') %>
-  <div class="ml-64">
-    <%- include('partials/header') %>
+  <%- include('partials/sidebar', { activePage: 'agendar-cita' }) %>
+    <div class="ml-64 min-h-screen flex flex-col">
+      <%- include('partials/header') %>
 
-    <main class="max-w-7xl mx-auto p-6 pt-24">
-      <%- include('partials/toast') %>
+        <div x-data="agendarCita()" x-init="init()" class="flex flex-col flex-1" style="padding-top:56px;">
 
-      <div class="panel-card card-shadow p-6">
-        <h2 class="text-2xl font-semibold mb-4 page-header">Agendar Cita</h2>
-
-        <!-- Stepper -->
-        <div x-data="agendarCita()" x-init="init()" class="space-y-6">
-          <div class="flex items-center gap-4">
-            <template x-for="(s, i) in steps" :key="i">
-              <div class="flex items-center">
-                <div :class="{'bg-emerald-500 text-white': step>i, 'bg-emerald-100 text-emerald-600': step===i, 'bg-gray-200 text-gray-500': step<i}
-                    class="w-10 h-10 flex items-center justify-center rounded-full font-medium"> 
-                  <span x-text="i+1"></span>
-                </div>
-                <div class="ml-3 mr-6 text-sm" :class="{'text-emerald-700': step>=i}">
-                  <div x-text="s"></div>
-                </div>
-              </div>
-            </template>
+          <!-- Error/conflict banner -->
+          <div x-show="errorBanner" x-transition
+            class="mx-6 mt-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm animate-fade">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8v4M12 16h.01" />
+            </svg>
+            <div>
+              <p class="font-semibold" x-text="errorBanner"></p>
+            </div>
+            <button @click="errorBanner=''" class="ml-auto flex-shrink-0 text-red-400 hover:text-red-600">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
 
-          <!-- Step Panels -->
-          <div>
-            <!-- Step 1: Verificación de Paciente -->
-            <div x-show="step===0" class="space-y-4">
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="md:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700">Tipo de documento</label>
-                  <select x-model="form.tipoDocumento" class="mt-1 block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-700 transition shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100">
-                    <option value="">Seleccione</option>
-                    <option value="CC">Cédula de Ciudadanía</option>
-                    <option value="TI">Tarjeta de Identidad</option>
-                    <option value="RC">Registro Civil</option>
-                    <option value="CE">Cédula Extranjería</option>
-                  </select>
-                </div>
+          <!-- Main content -->
+          <main class="flex-1 px-6 py-6">
+            <%- include('partials/toast') %>
 
+              <!-- Page title + status pill -->
+              <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
                 <div>
-                  <label class="block text-sm font-medium text-gray-700">Número de documento</label>
-                  <input x-model="form.documento" type="text" @keydown.enter.prevent="verifyPatient()" class="mt-1 block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-700 transition shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-100" placeholder="Número de documento" />
+                  <h1 class="text-2xl font-bold text-slate-900">Agendamiento de Citas</h1>
+                  <p class="text-sm text-slate-500 mt-1">Siga los pasos para programar una nueva cita médica en el
+                    sistema.</p>
                 </div>
-
-                <div class="md:col-span-3 flex items-end">
-                  <button @click.prevent="verifyPatient()" :disabled="loading.verify" class="btn-primary disabled:opacity-60">
-                    <span x-show="!loading.verify">Verificar Paciente</span>
-                    <span x-show="loading.verify">Verificando...</span>
-                  </button>
-                </div>
-              </div>
-
-              <div x-show="patient !== null" class="mt-4">
-                <div x-show="patient" class="mt-4">
-                  <div class="bg-white shadow rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                      <div>
-                        <div class="font-semibold text-lg" x-text="patient.persona.nombre + ' ' + patient.persona.apellido"></div>
-                        <div class="text-sm text-gray-500" x-text="patient.persona.tipoDocumento + ' ' + patient.persona.documento"></div>
-                      </div>
-                      <div>
-                        <span x-text="patient.paciente.estadoPaciente === 'ACTIVO' ? 'Paciente Activo' : 'Paciente Inactivo'" :class="patient.paciente.estadoPaciente === 'ACTIVO' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'" class="px-3 py-1 rounded-full text-sm"></span>
-                      </div>
-                    </div>
-                    <div class="mt-3 text-sm text-gray-600">
-                      <div><strong>Tel:</strong> <span x-text="patient.persona.telefono || '—'"></span></div>
-                      <div><strong>Email:</strong> <span x-text="patient.persona.email || '—'"></span></div>
-                    </div>
-                  </div>
+                <div x-show="step > 0"
+                  class="flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 self-start">
+                  <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                  Estado: EN PROCESO
                 </div>
               </div>
 
-              <div x-show="errorBanner" class="mt-4 p-3 rounded shadow bg-red-50 border-l-4 border-red-400 text-red-700">
-                <div x-text="errorBanner"></div>
-              </div>
-
-            </div>
-
-            <!-- Step 2: Selección de Especialidad -->
-            <div x-show="step===1" class="space-y-4">
-              <div class="flex items-center gap-3">
-                <svg class="w-6 h-6 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v1h6v-1c0-1.657-1.343-3-3-3z"/></svg>
-                <h3 class="text-lg font-medium">Selecciona la especialidad</h3>
-              </div>
-
-              <div>
-                <select x-model="form.especialidadId" @change="onSelectEspecialidad()" class="w-full rounded border-gray-200 p-2">
-                  <option value="">-- Seleccionar Especialidad --</option>
-                  <template x-for="esp in especialidades" :key="esp.id">
-                    <option :value="esp.id" x-text="esp.nombre"></option>
-                  </template>
-                </select>
-              </div>
-
-              <div x-show="especialidades.length===0" class="text-gray-500">No hay especialidades disponibles.</div>
-            </div>
-
-            <!-- Step 3: Selección de Médico -->
-            <div x-show="step===2" class="space-y-4">
-              <h3 class="text-lg font-medium">Médicos</h3>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <template x-for="med in medicos" :key="med.id">
-                  <div :class="med.disponibilidad ? 'border-emerald-200' : 'opacity-60'" class="bg-white rounded-lg shadow p-4 border">
-                    <div class="flex items-center justify-between">
-                      <div>
-                        <div class="font-semibold" x-text="med.persona.nombre + ' ' + med.persona.apellido"></div>
-                        <div class="text-sm text-gray-500">Tarjeta: <span x-text="med.tarjetaProfesional || '—'"></span></div>
+              <!-- Stepper -->
+              <div class="flex items-start mb-8 px-2">
+                <template x-for="(s, i) in steps" :key="i">
+                  <div class="flex items-center" :class="i < steps.length - 1 ? 'flex-1' : ''">
+                    <div class="flex flex-col items-center gap-1.5 flex-shrink-0">
+                      <div :class="{
+                    'bg-blue-600 text-white border-blue-600': step > i,
+                    'bg-white text-blue-600 border-blue-500': step === i,
+                    'bg-white text-slate-400 border-slate-200': step < i
+                  }" class="w-9 h-9 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-all">
+                        <template x-if="step > i">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewbox="0 0 24 24"
+                            stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </template>
+                        <template x-if="step <= i">
+                          <span x-text="i + 1"></span>
+                        </template>
                       </div>
-                      <div>
-                        <span x-text="med.disponibilidad ? 'Disponible' : 'No disponible'" :class="med.disponibilidad ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'" class="px-3 py-1 rounded-full text-sm"></span>
-                      </div>
+                      <span class="text-xs font-medium" :class="step >= i ? 'text-blue-700' : 'text-slate-400'"
+                        x-text="s"></span>
                     </div>
-                    <div class="mt-3 flex justify-end">
-                      <button @click.prevent="selectMedico(med)" :disabled="!med.disponibilidad" class="btn-secondary disabled:opacity-50">Seleccionar</button>
-                    </div>
+                    <template x-if="i < steps.length - 1">
+                      <div class="flex-1 h-0.5 mx-2 mb-5 transition-colors"
+                        :class="step > i ? 'bg-blue-500' : 'bg-slate-200'"></div>
+                    </template>
                   </div>
                 </template>
               </div>
 
-              <div x-show="medicos.length===0" class="text-gray-500">No hay médicos para la especialidad seleccionada.</div>
-            </div>
+              <!-- Step panels -->
 
-            <!-- Step 4: Selección de Horario -->
-            <div x-show="step===3" class="space-y-4">
-              <h3 class="text-lg font-medium">Horarios</h3>
+              <!-- STEP 1: Verificación de Paciente -->
+              <div x-show="step === 0" class="animate-fade">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                  <div class="flex items-center gap-2 mb-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none"
+                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h2 class="text-base font-semibold text-slate-900">Paso 1: Verificación de Paciente</h2>
+                  </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="col-span-1 md:col-span-1">
-                  <!-- Mini calendario (simplificado) -->
-                  <div class="bg-white p-4 rounded shadow">
-                    <div class="text-sm text-gray-500 mb-2">Selector de fecha</div>
-                    <input type="date" x-model="selectedDate" @change="loadHorarios()" class="w-full p-2 border rounded" />
+                  <!-- Search row -->
+                  <div class="flex gap-3 mb-5">
+                    <div class="flex-1 relative">
+                      <label class="block text-xs font-semibold text-slate-500 mb-1.5">Número de Documento del
+                        Paciente</label>
+                      <div class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 flex-shrink-0" fill="none"
+                          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2" />
+                        </svg>
+                        <input x-model="form.documento" type="text" @keydown.enter.prevent="verifyPatient()"
+                          placeholder="Ej: 1023456789"
+                          class="w-full text-sm bg-transparent focus:outline-none text-slate-800" />
+                      </div>
+                    </div>
+                    <div class="flex items-end">
+                      <button @click.prevent="verifyPatient()" :disabled="loading.verify"
+                        class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition disabled:opacity-60">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                          stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+                        </svg>
+                        <span x-show="!loading.verify">Verificar Paciente</span>
+                        <span x-show="loading.verify">Verificando...</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Patient card -->
+                  <div x-show="patient !== null" class="animate-fade">
+                    <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                      <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <!-- Avatar -->
+                        <div
+                          class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold text-lg">
+                          <span
+                            x-text="patient ? (patient.persona.nombre[0] || '') + (patient.persona.apellido[0] || '') : ''"></span>
+                        </div>
+
+                        <!-- Info grid -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-2 flex-1 text-sm">
+                          <div>
+                            <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Nombre Completo</p>
+                            <p class="font-semibold text-slate-800 mt-0.5"
+                              x-text="patient ? patient.persona.nombre + ' ' + patient.persona.apellido : ''"></p>
+                          </div>
+                          <div>
+                            <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Identificación</p>
+                            <p class="font-medium text-slate-700 mt-0.5"
+                              x-text="patient ? (patient.persona.tipoDocumento + ' ' + patient.persona.documento) : ''">
+                            </p>
+                          </div>
+                          <div>
+                            <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Correo Electrónico
+                            </p>
+                            <p class="text-slate-700 mt-0.5" x-text="patient ? (patient.persona.email || '—') : ''"></p>
+                          </div>
+                          <div class="flex flex-col justify-between">
+                            <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Estado</p>
+                            <span x-show="patient"
+                              x-text="patient && patient.estadoPaciente === 'ACTIVO' ? 'Paciente Activo' : 'Paciente Inactivo'"
+                              :class="patient && patient.estadoPaciente === 'ACTIVO' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'"
+                              class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold mt-0.5 w-fit">
+                            </span>
+                          </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex gap-2 flex-shrink-0">
+                          <button class="p-2 rounded-lg hover:bg-slate-200 text-slate-500 transition" title="Editar">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                              stroke="currentColor" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button class="p-2 rounded-lg hover:bg-slate-200 text-slate-500 transition" title="Ver">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                              stroke="currentColor" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 2: Especialidad + Médico + Calendario + Horario -->
+              <div x-show="step === 1" class="space-y-5 animate-fade">
+                <!-- Selectors row -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                    <label class="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-500" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Especialidad
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 ml-0.5" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 8v4M12 16h.01" />
+                      </svg>
+                    </label>
+                    <div class="relative">
+                      <select x-model="form.especialidadId" @change="onSelectEspecialidad()"
+                        class="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 pr-9">
+                        <option value="">-- Seleccionar Especialidad --</option>
+                        <template x-for="esp in especialidades" :key="esp.id">
+                          <option :value="esp.id" x-text="esp.nombre"></option>
+                        </template>
+                      </select>
+                      <svg class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                    <label class="block text-sm font-semibold text-slate-700 mb-3">Médico Tratante</label>
+                    <div class="relative">
+                      <select x-model="form.medicoId" @change="onSelectMedico()"
+                        class="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 pr-9"
+                        :disabled="medicos.length === 0">
+                        <option value="">-- Seleccionar Médico --</option>
+                        <template x-for="med in medicos" :key="med.id">
+                          <option :value="med.id" :disabled="!med.disponibilidad"
+                            x-text="'Dr. ' + med.persona.nombre + ' ' + med.persona.apellido + (med.tarjetaProfesional ? ' - TP: ' + med.tarjetaProfesional : '')">
+                          </option>
+                        </template>
+                      </select>
+                      <svg class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
+                        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
-                <div class="col-span-1 md:col-span-3">
-                  <div class="bg-white p-4 rounded shadow">
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <template x-for="h in horarios" :key="h.id">
-                        <button @click.prevent="selectHorario(h)" :disabled="!h.disponible || new Date(h.horaInicio) <= new Date()" :class="{
-                          'bg-emerald-600 text-white': selectedHorario && selectedHorario.id===h.id,
-                          'bg-blue-50 text-emerald-700 hover:shadow-lg': h.disponible && !(selectedHorario && selectedHorario.id===h.id),
-                          'bg-gray-100 text-gray-400 cursor-not-allowed': !h.disponible || new Date(h.horaInicio) <= new Date()
-                        }" class="rounded p-3 text-sm border">
-                          <div x-text="(new Date(h.horaInicio)).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})"></div>
-                          <div class="text-xs text-gray-500" x-text="(new Date(h.horaInicio)).toLocaleDateString()"></div>
+                <!-- Calendar + Time slots -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <!-- Calendar -->
+                  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                    <div class="flex items-center justify-between mb-4">
+                      <span class="text-sm font-semibold text-slate-800" x-text="calendarTitle"></span>
+                      <div class="flex gap-1">
+                        <button @click="prevMonth()"
+                          class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+                        <button @click="nextMonth()"
+                          class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 transition">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-7 mb-1">
+                      <template x-for="d in ['D','L','M','M','J','V','S']">
+                        <div class="text-center text-xs font-semibold text-slate-400 py-1" x-text="d"></div>
+                      </template>
+                    </div>
+                    <div class="grid grid-cols-7 gap-y-0.5">
+                      <template x-for="day in calendarDays" :key="day.date">
+                        <button @click="day.currentMonth && selectCalendarDate(day.date)" :disabled="!day.currentMonth"
+                          :class="{
+                      'today': day.isToday,
+                      'other-month': !day.currentMonth,
+                      'bg-blue-50 text-blue-700 font-semibold': selectedDate === day.date && !day.isToday
+                    }" class="cal-day mx-auto" x-text="day.day">
                         </button>
                       </template>
                     </div>
-                    <div x-show="horarios.length===0" class="text-gray-500 mt-2">No hay horarios disponibles para la fecha seleccionada.</div>
+                  </div>
+
+                  <!-- Time slots -->
+                  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                    <div class="flex items-center justify-between mb-4">
+                      <span class="text-sm font-semibold text-slate-800">Horarios Disponibles</span>
+                      <span class="text-xs text-slate-400"
+                        x-text="selectedDate ? new Date(selectedDate + 'T12:00:00').toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long'}) : 'Seleccione una fecha'"></span>
+                    </div>
+                    <div x-show="horarios.length > 0" class="grid grid-cols-2 gap-2">
+                      <template x-for="h in horarios" :key="h.id">
+                        <button @click.prevent="selectHorario(h)"
+                          :disabled="!h.disponible || new Date(h.horaInicio) <= new Date()" :class="{
+                      'selected': selectedHorario && selectedHorario.id === h.id,
+                      'past': new Date(h.horaInicio) <= new Date() || !h.disponible
+                    }" class="slot-btn">
+                          <div
+                            x-text="(new Date(h.horaInicio)).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})">
+                          </div>
+                        </button>
+                      </template>
+                    </div>
+                    <div x-show="horarios.length === 0" class="text-center text-slate-400 text-sm py-8">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2 text-slate-300" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7H3v12a2 2 0 002 2z" />
+                      </svg>
+                      Seleccione fecha y médico para ver horarios
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Motivo -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                  <div class="flex items-center justify-between mb-3">
+                    <label class="text-sm font-semibold text-slate-700">Motivo de la cita</label>
+                    <span class="text-xs text-rose-500 font-medium">* Obligatorio</span>
+                  </div>
+                  <textarea x-model="form.motivo" maxlength="500" rows="3"
+                    class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 resize-none"
+                    placeholder="Describa brevemente la razón de la consulta clínica..."></textarea>
+                  <div class="text-right text-xs text-slate-400 mt-1"><span x-text="form.motivo.length"></span>/500
                   </div>
                 </div>
               </div>
 
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Motivo de la consulta</label>
-                <textarea x-model="form.motivo" maxlength="500" class="mt-1 block w-full rounded-md border-gray-200 p-3" placeholder="Describa brevemente el motivo de la consulta (síntomas, antecedentes relevantes, objetivo de la cita)"></textarea>
-                <div class="text-xs text-gray-400 mt-1"><span x-text="form.motivo.length"></span>/500</div>
+              <!-- STEP 3 (unused, reserved) -->
+              <div x-show="step === 2" class="animate-fade">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center text-slate-400">
+                  Resumen de confirmación</div>
               </div>
 
-              <div class="flex justify-end gap-3">
-                <button @click.prevent="prev()" class="btn-secondary">Atrás</button>
-                <button @click.prevent="confirmAgendar()" :disabled="isSubmitting" class="btn-primary disabled:opacity-60">
+          </main>
+
+          <!-- Fixed bottom bar -->
+          <div
+            class="sticky bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-4 flex items-center justify-between gap-4 ml-0">
+            <div x-show="step === 1" class="flex items-center gap-2 text-sm text-slate-500">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-500 flex-shrink-0" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Reserva segura protegida por protocolo clínico
+            </div>
+            <div x-show="step === 0" class="text-sm text-slate-400">Verifique al paciente antes de continuar.</div>
+
+            <div class="flex items-center gap-3 ml-auto">
+              <button @click.prevent="step === 0 ? (window.location.href='/') : prev()"
+                class="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition">
+                <span x-text="step === 0 ? 'Cancelar Proceso' : 'Anterior'"></span>
+              </button>
+
+              <template x-if="step === 0">
+                <button @click.prevent="nextFromStep0()" :disabled="!patient || patient.estadoPaciente !== 'ACTIVO'"
+                  class="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 transition disabled:opacity-50">
+                  Siguiente Paso
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </template>
+
+              <template x-if="step === 1">
+                <button @click.prevent="confirmAgendar()"
+                  :disabled="isSubmitting || !selectedHorario || !form.motivo.trim()"
+                  class="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 transition disabled:opacity-50">
                   <span x-show="!isSubmitting">Confirmar y Registrar Agendamiento</span>
                   <span x-show="isSubmitting">Procesando...</span>
+                  <svg x-show="!isSubmitting" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
                 </button>
-              </div>
+              </template>
             </div>
-
           </div>
-
         </div>
+    </div>
 
-      </div>
-    </main>
-  </div>
-
-  <script src="/js/agendar-cita.js"></script>
+    <script src="/js/agendar-cita.js"></script>
 </body>
+
 </html>

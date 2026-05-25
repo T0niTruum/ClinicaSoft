@@ -1,3 +1,4 @@
+
 -- PostgreSQL SQL schema for ClinicaSoft domain model
 -- UUID primary keys and referential integrity based on Prisma model.
 

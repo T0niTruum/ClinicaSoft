@@ -2,6 +2,9 @@ function pacienteManager() {
   return {
     loading: { patients: false, saving: false, confirming: false },
     patients: [],
+    totalPatients: 0,
+    currentPage: 1,
+    pageSize: 15,
     filters: { estado: '', documento: '' },
     modalOpen: false,
     confirmModalOpen: false,
@@ -34,12 +37,16 @@ function pacienteManager() {
         const params = new URLSearchParams();
         if (this.filters.estado) params.append('estado', this.filters.estado);
         if (this.filters.documento) params.append('documento', this.filters.documento);
+        params.append('page', this.currentPage);
+        params.append('pageSize', this.pageSize);
         const response = await fetch('/api/pacientes?' + params.toString());
         const json = await response.json();
         if (json.success) {
           this.patients = json.data.items || json.data || [];
+          this.totalPatients = json.data.total || this.patients.length;
         } else {
           this.patients = [];
+          this.totalPatients = 0;
           showToast('error', json.message || 'No se pudieron cargar los pacientes');
         }
       } catch (error) {
@@ -48,6 +55,14 @@ function pacienteManager() {
       } finally {
         this.loading.patients = false;
       }
+    },
+
+    async prevPage() {
+      if (this.currentPage > 1) { this.currentPage--; await this.loadPatients(); }
+    },
+
+    async nextPage() {
+      if (this.patients.length >= this.pageSize) { this.currentPage++; await this.loadPatients(); }
     },
 
     openPatientModal(patient = null) {
@@ -66,7 +81,7 @@ function pacienteManager() {
           estadoCivil: patient.estadoCivil || '',
           email: patient.persona.email || '',
           telefono: patient.persona.telefono || '',
-          estadoPaciente: patient.paciente.estadoPaciente || 'ACTIVO',
+          estadoPaciente: patient.estadoPaciente || 'ACTIVO',
         };
       } else {
         this.isEditing = false;
@@ -128,25 +143,25 @@ function pacienteManager() {
         const method = this.isEditing ? 'PUT' : 'POST';
         const body = this.isEditing
           ? {
-              nombre: this.form.nombre,
-              apellido: this.form.apellido,
-              fechaNacimiento: this.form.fechaNacimiento,
-              estadoCivil: this.form.estadoCivil,
-              email: this.form.email,
-              telefono: this.form.telefono,
-              estadoPaciente: this.form.estadoPaciente,
-            }
+            nombre: this.form.nombre,
+            apellido: this.form.apellido,
+            fechaNacimiento: this.form.fechaNacimiento,
+            estadoCivil: this.form.estadoCivil,
+            email: this.form.email,
+            telefono: this.form.telefono,
+            estadoPaciente: this.form.estadoPaciente,
+          }
           : {
-              tipoDocumento: this.form.tipoDocumento,
-              documento: this.form.documento,
-              nombre: this.form.nombre,
-              apellido: this.form.apellido,
-              fechaNacimiento: this.form.fechaNacimiento,
-              estadoCivil: this.form.estadoCivil,
-              email: this.form.email,
-              telefono: this.form.telefono,
-              estadoPaciente: this.form.estadoPaciente,
-            };
+            tipoDocumento: this.form.tipoDocumento,
+            documento: this.form.documento,
+            nombre: this.form.nombre,
+            apellido: this.form.apellido,
+            fechaNacimiento: this.form.fechaNacimiento,
+            estadoCivil: this.form.estadoCivil,
+            email: this.form.email,
+            telefono: this.form.telefono,
+            estadoPaciente: this.form.estadoPaciente,
+          };
         const res = await fetch(url, {
           method,
           headers: { 'Content-Type': 'application/json' },

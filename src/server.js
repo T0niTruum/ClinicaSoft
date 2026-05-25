@@ -9,6 +9,7 @@ import agendamientoRouter from './routes/agendamiento.js';
 import medicosRouter from './routes/medicos.js';
 import citasRouter from './routes/citas.js';
 import healthRouter from './routes/health.js';
+import dashboardRouter from './routes/dashboard.js';
 import { hybridResponder } from './middlewares/responseMiddleware.js';
 import { flashMiddleware } from './middlewares/flashMiddleware.js';
 
@@ -30,16 +31,16 @@ app.use(flashMiddleware);
 app.use(express.static(path.join(process.cwd(), 'public')));
 app.use(hybridResponder);
 
-app.get('/', (req, res) => {
-  return res.redirect('/pacientes');
-});
-
 app.use('/health', healthRouter);
+app.use('/dashboard', dashboardRouter);
 app.use('/api/pacientes', pacientesApiRouter);
 app.use('/pacientes', pacienteCrudRouter);
 app.use('/agendar-cita', agendamientoRouter);
 app.use('/api/medicos', medicosRouter);
 app.use('/api/citas', citasRouter);
+
+// Root redirect to dashboard
+app.get('/', (req, res) => res.redirect('/dashboard'));
 
 const PORT = process.env.PORT || 3000;
 

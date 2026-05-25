@@ -1,42 +1,161 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
-  <title>Clínica Del Llano | Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | Clínica Del Llano</title>
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/app.css" />
+  <style>
+    .stat-card {
+      background: #fff;
+      border-radius: 1.25rem;
+      border: 1px solid #e2efff;
+      padding: 1.5rem 1.75rem;
+      box-shadow: 0 8px 30px rgba(15, 23, 42, 0.07);
+    }
+
+    .stat-icon {
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 0.875rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .schedule-row {
+      display: flex;
+      align-items: center;
+      padding: 0.875rem 1.5rem;
+      border-bottom: 1px solid #f1f5f9;
+      gap: 1rem;
+      transition: background .15s;
+    }
+
+    .schedule-row:last-child {
+      border-bottom: none;
+    }
+
+    .schedule-row:hover {
+      background: #f8fafc;
+    }
+
+    .time-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #0b5ed7;
+      background: #eff6ff;
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      white-space: nowrap;
+    }
+  </style>
 </head>
-<body>
-  <h1>Dashboard</h1>
-  <% if (flash && flash.success) { %>
-    <div class="alert success"><%= flash.success.join(', ') %></div>
-  <% } %>
-  <% if (flash && flash.warning) { %>
-    <div class="alert warning"><%= flash.warning.join(', ') %></div>
-  <% } %>
 
-  <section>
-    <h2>Estadísticas</h2>
-    <ul>
-      <li>Pacientes activos: <%= dashboard.pacientesActivos %></li>
-      <li>Médicos disponibles: <%= dashboard.medicosDisponibles %></li>
-      <li>Citas pendientes: <%= dashboard.citasPendientes %></li>
-    </ul>
-  </section>
+<body class="bg-slate-50 text-slate-800">
 
-  <section>
-    <h2>Próximos horarios disponibles</h2>
-    <ul>
-      <% dashboard.proximosHorarios.forEach((horario) => { %>
-        <li>
-          <%= horario.fecha.toISOString().slice(0, 10) %> -
-          <%= horario.horaInicio.toISOString().slice(11, 16) %> a
-          <%= horario.horaFin.toISOString().slice(11, 16) %>
-          (<%= horario.medico.persona.nombre %> <%= horario.medico.persona.apellido %>)
-        </li>
-      <% }) %>
-      <% if (dashboard.proximosHorarios.length === 0) { %>
-        <li>No hay horarios disponibles por el momento.</li>
+  <%- include('partials/sidebar', { activePage: 'dashboard' }) %>
+    <div class="ml-64 min-h-screen bg-slate-50">
+      <%- include('partials/header') %>
+
+        <main class="max-w-7xl mx-auto px-6 py-8" style="padding-top: 5.5rem;">
+
+          <!-- Flash messages -->
+          <% if (flash && flash.success) { %>
+            <div class="mb-4 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-emerald-700 text-sm">
+              <%=
+                flash.success.join(', ') %></div>
       <% } %>
-    </ul>
-  </section>
+      <% if (flash && flash.warning) { %>
+        <div class="mb-4 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-amber-700 text-sm"><%= flash.warning.join('
+                , ') %></div>
+      <% } %>
+
+      <!-- Page heading -->
+      <section class="mb-8">
+        <p class="text-sm uppercase tracking-[0.24em] font-semibold section-label">Portal Médico</p>
+        <h1 class="text-3xl font-semibold page-header mt-1">Panel de Control</h1>
+        <p class="mt-2 text-slate-500 max-w-2xl">Resumen general del sistema, actividad reciente y próximos horarios disponibles.</p>
+      </section>
+
+      <!-- Stats cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+        <!-- Pacientes activos -->
+        <div class="stat-card flex items-center gap-4">
+          <div class="stat-icon bg-emerald-100">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-widest text-slate-400">Pacientes Activos</p>
+            <p class="text-3xl font-bold text-slate-900 mt-0.5"><%= dashboard.pacientesActivos %></p>
+          </div>
+        </div>
+
+        <!-- Médicos disponibles -->
+        <div class="stat-card flex items-center gap-4">
+          <div class="stat-icon bg-blue-100">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-widest text-slate-400">Médicos Disponibles</p>
+            <p class="text-3xl font-bold text-slate-900 mt-0.5"><%= dashboard.medicosDisponibles %></p>
+          </div>
+        </div>
+
+        <!-- Citas pendientes -->
+        <div class="stat-card flex items-center gap-4">
+          <div class="stat-icon bg-amber-100">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7H3v12a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-widest text-slate-400">Citas Pendientes</p>
+            <p class="text-3xl font-bold text-slate-900 mt-0.5"><%= dashboard.citasPendientes %></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Próximos horarios -->
+      <div class="panel-card card-shadow overflow-hidden">
+        <div class="border-b border-slate-200 px-6 py-4 bg-slate-50 flex items-center justify-between">
+          <div>
+            <h3 class="text-lg font-semibold text-slate-900">Próximos Horarios Disponibles</h3>
+            <p class="text-sm text-slate-500">Bloques médicos disponibles para nuevas citas.</p>
+          </div>
+          <a href="/agendar-cita" class="inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m7-7H5"/></svg>
+            Agendar Cita
+          </a>
+        </div>
+
+        <div>
+          <% if (dashboard.proximosHorarios.length === 0) { %>
+            <div class="px-6 py-12 text-center text-slate-500">No hay horarios disponibles por el momento.</div>
+          <% } %>
+          <% dashboard.proximosHorarios.forEach((horario) => { %>
+            <div class="schedule-row">
+              <div class="flex-shrink-0 stat-icon bg-blue-50" style="width:2.25rem;height:2.25rem;border-radius:0.75rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-slate-800"><%= horario.medico.persona.nombre %> <%= horario.medico.persona.apellido %></p>
+                <p class="text-xs text-slate-500 mt-0.5"><%= horario.fecha.toISOString().slice(0, 10) %></p>
+              </div>
+              <span class="time-badge">
+                <%= horario.horaInicio.toISOString().slice(11, 16) %> – <%= horario.horaFin.toISOString().slice(11, 16) %>
+              </span>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </main>
+  </div>
 </body>
 </html>
